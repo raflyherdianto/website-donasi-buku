@@ -1,0 +1,76 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container, card, grid_container %}
+
+{% block title %}Profil Pengembang{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-[#21587C] text-white text-center py-12 sm:py-16 px-4">
+    {% call content_container("6xl", "px-0 py-0") %}
+        <h1 class="text-3xl sm:text-4xl font-bold mb-6">Profil Pengembang</h1>
+        <p class="mb-10 max-w-4xl mx-auto text-sm sm:text-base leading-relaxed">
+            Website ini dikembangkan oleh Salma Acacia Prasasta, mahasiswa Universitas Negeri Malang, Program Studi D4 Perpustakaan Digital.
+            Pengembangan ini sebagai bagian dari Tugas Akhir dengan arahan dan bimbingan dari Ibu Lidya Amalia Rahmania, S.Kom, M.Kom.
+        </p>
+
+        {% call grid_container("grid-cols-1 md:grid-cols-2", "gap-8 lg:gap-12") %}
+            <!-- Pembimbing -->
+            {% call card(class="bg-transparent text-white text-center") %}
+                <h2 class="font-bold text-xl mb-4">Pembimbing</h2>
+                <div class="w-48 h-48 mx-auto bg-white rounded-lg overflow-hidden flex items-center justify-center shadow-lg mb-4">
+                    <img src="{{ url_for('static', filename='images/pembimbing.jpg') }}" alt="Pembimbing" class="w-50 h-full object-cover">
+                </div>
+                <div class="text-sm sm:text-base leading-relaxed">
+                    <p class="font-semibold mb-2">Lidya Amalia Rahmania, S.Kom, M.Kom.</p>
+                    <p>Program Studi D4 Perpustakaan Digital</p>
+                    <p>Universitas Negeri Malang</p>
+                    <p class="mt-2 text-blue-200">lidya.amalia.fs@um.ac.id</p>
+                </div>
+            {% endcall %}
+
+            <!-- Penulis -->
+            {% call card(class="bg-transparent text-white text-center") %}
+                <h2 class="font-bold text-xl mb-4">Pengembang</h2>
+                <div class="w-48 h-48 mx-auto bg-white rounded-lg overflow-hidden flex items-center justify-center shadow-lg mb-4">
+                    <img src="{{ url_for('static', filename='images/pengembang.jpg') }}" alt="Penulis" class="w-full h-full object-cover">
+                </div>
+                <div class="text-sm sm:text-base leading-relaxed">
+                    <p class="font-semibold mb-2">Salma Acacia Prasasta</p>
+                    <p>Program Studi D4 Perpustakaan Digital</p>
+                    <p>Universitas Negeri Malang</p>
+                    <p class="mt-2 text-blue-200 break-all">Salma.acacia.2102135@students.um.ac.id</p>
+                </div>
+            {% endcall %}
+        {% endcall %}
+    {% endcall %}
+</div>
+{% endblock %}
+
+<!-- Script Dropdown -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".dropdown-toggle").forEach(function (toggle) {
+            toggle.addEventListener("click", function (e) {
+                e.preventDefault();
+                const dropdown = this.closest(".dropdown");
+                dropdown.classList.toggle("show");
+
+                document.querySelectorAll(".dropdown").forEach(function (other) {
+                    if (other !== dropdown) {
+                        other.classList.remove("show");
+                    }
+                });
+            });
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!e.target.closest(".dropdown")) {
+                document.querySelectorAll(".dropdown").forEach(function (dropdown) {
+                    dropdown.classList.remove("show");
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

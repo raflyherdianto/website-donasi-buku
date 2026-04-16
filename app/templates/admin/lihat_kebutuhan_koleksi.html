@@ -1,0 +1,41 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/content_wrapper.html" import page_header, card %}
+
+{% block title %}Data Kebutuhan Koleksi{% endblock %}
+
+{% block content %}
+{{ page_header("Daftar Kebutuhan Koleksi", "Berikut adalah daftar pengajuan kebutuhan koleksi dari perpustakaan desa.") }}
+
+{% call card("", "bg-white rounded-lg shadow overflow-x-auto") %}
+  <table class="min-w-full text-sm text-gray-700">
+    <thead class="bg-blue-100 text-blue-800 text-left">
+      <tr>
+        <th class="py-3 px-4">Tanggal</th>
+        <th class="py-3 px-4">Nama Perpus</th>
+        <th class="py-3 px-4">Subjek</th>
+        <th class="py-3 px-4">Jumlah</th>
+        <th class="py-3 px-4">Prioritas</th>
+        <th class="py-3 px-4">Lokasi</th>
+        <th class="py-3 px-4">Alasan</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in data_kebutuhan %}
+      <tr class="border-b hover:bg-gray-50">
+        <td class="py-2 px-4">{{ item.tanggal_pengajuan.strftime('%d-%m-%Y') }}</td>
+        <td class="py-2 px-4">{{ item.nama_perpustakaan }}</td>
+        <td class="py-2 px-4">{{ item.subjek }}</td>
+        <td class="py-2 px-4">{{ item.jumlah_buku }}</td>
+        <td class="py-2 px-4 capitalize">{{ item.prioritas }}</td>
+        <td class="py-2 px-4">{{ item.lokasi or '-' }}</td>
+        <td class="py-2 px-4">{{ item.alasan or '-' }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" class="text-center py-4 text-gray-500">Belum ada data kebutuhan.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endcall %}
+{% endblock %}

@@ -1,0 +1,100 @@
+{# Hero Section Macro #}
+{% macro hero_section(title, subtitle, background_image=None, cta_text=None, cta_url=None) %}
+<section class="relative bg-cover bg-center h-64 md:h-96" 
+         {% if background_image %}style="background-image: url('{{ background_image }}');"{% else %}style="background-image: url('{{ url_for('static', filename='images/library.jpg') }}');"{% endif %}>
+    <div class="absolute inset-0 bg-black opacity-50"></div>
+    <div class="container mx-auto px-6 relative flex flex-col items-center justify-center h-full">
+        <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 text-center">{{ title }}</h1>
+        {% if subtitle %}
+        <p class="text-lg text-white mb-6 text-center">{{ subtitle }}</p>
+        {% endif %}
+        {% if cta_text and cta_url %}
+        <a href="{{ cta_url }}" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300">
+            {{ cta_text }}
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endmacro %}
+
+{# Page Header Macro #}
+{% macro page_header(title, subtitle=None, background_class="bg-gray-200") %}
+<div class="{{ background_class }} py-6 text-center shadow">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-700">{{ title }}</h1>
+    {% if subtitle %}
+    <p class="mt-1 text-sm text-gray-600">{{ subtitle }}</p>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# Content Container Macro #}
+{% macro content_container(max_width="7xl", padding="px-4 py-10") %}
+<div class="max-w-{{ max_width }} mx-auto {{ padding }}">
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+{# Card Macro #}
+{% macro card(title=None, class="bg-white shadow-lg rounded-xl") %}
+<div class="{{ class }} p-6">
+    {% if title %}
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ title }}</h2>
+    {% endif %}
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+{# Grid Container Macro #}
+{% macro grid_container(cols="grid-cols-1 md:grid-cols-2 lg:grid-cols-3", gap="gap-6") %}
+<div class="grid {{ cols }} {{ gap }}">
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+{# Form Container Macro #}
+{% macro form_container(title, max_width="md") %}
+<div class="max-w-{{ max_width }} mx-auto bg-white p-8 shadow-xl rounded-xl">
+    {% if title %}
+    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">{{ title }}</h2>
+    {% endif %}
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+{# Button Macro #}
+{% macro button(text, type="button", class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition duration-200", onclick=None) %}
+<button type="{{ type }}" class="{{ class }}" {% if onclick %}onclick="{{ onclick }}"{% endif %}>
+    {{ text }}
+</button>
+{% endmacro %}
+
+{# News Card Macro #}
+{% macro news_card(news) %}
+<div class="news-card bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer" 
+     onclick="window.location.href='{{ url_for('public.detail_berita', perpus_slug=news.perpus_slug, slug=news.slug) }}'">
+    <div class="overflow-hidden rounded-t-lg">
+        <img src="{{ url_for('static', filename=news.image) }}" alt="{{ news.title }}" 
+             class="w-full h-48 object-cover transition-transform duration-300 hover:scale-105">
+    </div>
+    <div class="p-4 sm:p-6">
+        <h1 class="text-lg sm:text-xl font-bold text-gray-800 mb-3 hover:text-blue-600 transition-colors duration-200 line-clamp-2">
+            {{ news.title }}
+        </h1>
+        <div class="flex flex-col sm:flex-row sm:items-center text-xs sm:text-sm text-gray-500 mb-4 space-y-1 sm:space-y-0">
+            <div class="flex items-center">
+                <i class="fa-solid fa-user mr-2"></i>
+                <span class="mr-4">{{ news.author }}</span>
+            </div>
+            <div class="flex items-center">
+                <i class="fa-solid fa-calendar mr-2"></i>
+                <span>{{ news.date }}</span>
+            </div>
+        </div>
+        <p class="text-gray-600 text-sm line-clamp-3 mb-4">{{ news.excerpt }}</p>
+        <a href="{{ url_for('public.detail_berita', perpus_slug=news.perpus_slug, slug=news.slug) }}" 
+           class="text-blue-600 hover:text-blue-800 font-semibold text-sm transition-colors duration-200">
+            Baca Selengkapnya →
+        </a>
+    </div>
+</div>
+{% endmacro %}

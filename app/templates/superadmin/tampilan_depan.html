@@ -1,0 +1,80 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% from "superadmin/content_wrapper.html" import page_header, card, stats_card, action_button %}
+
+{% block title %}Dashboard Super Admin{% endblock %}
+
+{% block content %}
+{{ page_header("Selamat Datang, " + SessionManager.get_specific_user_data('full_name', 'superadmin')|default('Super Admin') + "!", "Kelola sistem donasi buku perpustakaan desa dengan mudah dan efisien.") }}
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-10">
+    {{ stats_card("Total Donatur", total_donatur or '0', "fas fa-users", "blue") }}
+    {{ stats_card("Total Buku Didonasikan", total_buku or '0', "fas fa-book", "green") }}
+    {{ stats_card("Perpustakaan Desa", total_perpus or '0', "fas fa-building", "yellow") }}
+</div>
+
+<!-- Quick Actions and Recent Activity -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Permintaan Buku Mendesak -->
+    {% call card("Permintaan Buku Mendesak") %}
+        {% if permintaan_list %}
+            <ul class="space-y-3 text-sm">
+                {% for item in permintaan_list %}
+                <li class="flex flex-col sm:flex-row sm:justify-between border-b pb-2 last:border-b-0">
+                    <span class="font-medium text-gray-800">{{ item.perpus.nama }} - {{ item.perpus.kecamatan }}</span>
+                    <span class="text-red-600 font-semibold text-xs sm:text-sm">
+                        <i class="fas fa-exclamation-circle mr-1"></i>
+                        Dibutuhkan: {{ item.total_buku }} buku
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="text-right mt-4">
+                <a href="{{ url_for('superadmin.pengajuan_perpusdes') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    Lihat semua →
+                </a>
+            </div>
+        {% else %}
+            <div class="text-center py-6 text-gray-500">
+                <i class="fas fa-clipboard-list text-2xl mb-2"></i>
+                <p>Belum ada permintaan mendesak.</p>
+            </div>
+        {% endif %}
+    {% endcall %}
+
+    <!-- Transparansi Donasi Terbaru -->
+    {% call card("Transparansi Donasi Terbaru") %}
+        {% if riwayat_donasi %}
+            <ul class="space-y-3 text-sm">
+                {% for donasi in riwayat_donasi %}
+                <li class="flex flex-col sm:flex-row sm:justify-between border-b pb-2 last:border-b-0">
+                    <span class="font-medium text-gray-800">{{ donasi.donatur['full_name'] }}</span>
+                    <span class="text-blue-600 font-semibold text-xs sm:text-sm">
+                        <i class="fas fa-gift mr-1"></i>
+                        {{ donasi.jumlah }} buku {{ donasi.subjek }}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="text-right mt-4">
+                <a href="{{ url_for('superadmin.list_donasi') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    Lihat semua →
+                </a>
+            </div>
+        {% else %}
+            <div class="text-center py-6 text-gray-500">
+                <i class="fas fa-donate text-2xl mb-2"></i>
+                <p>Belum ada donasi tercatat.</p>
+            </div>
+        {% endif %}
+    {% endcall %}
+</div>
+
+<!-- Quick Actions -->
+{% call card("Tindakan Cepat") %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {{ action_button("Konfirmasi Bukti Donasi", url_for('superadmin.list_donasi'), icon="fas fa-check-circle", class="w-full justify-center") }}
+        {{ action_button("Kelola Perpustakaan", "/superadmin/perpusdes", type="success", icon="fas fa-building", class="w-full justify-center") }}
+    </div>
+{% endcall %}
+{% endblock %}

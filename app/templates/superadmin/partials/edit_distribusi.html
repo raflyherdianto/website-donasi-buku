@@ -1,0 +1,272 @@
+<div class="max-w-4xl mx-auto space-y-8">
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Edit Distribusi Buku</h3>
+            <p class="text-sm text-gray-600 mt-1">Kelola informasi distribusi buku ke perpustakaan</p>
+        </div>
+    </div>
+
+    <!-- Informasi Perpustakaan -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h4 class="text-base font-semibold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                Informasi Perpustakaan
+            </h4>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-gray-700">Nama Perpustakaan</label>
+                    <p class="text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
+                        {{ distribusi.perpus.nama if distribusi.perpus else '-' }}
+                    </p>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-gray-700">Kecamatan</label>
+                    <p class="text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
+                        {{ distribusi.perpus.kecamatan if distribusi.perpus else '-' }}
+                    </p>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-gray-700">Desa</label>
+                    <p class="text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
+                        {{ distribusi.perpus.desa if distribusi.perpus else '-' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Distribusi -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h4 class="text-base font-semibold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Status Distribusi
+            </h4>
+        </div>
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="status" class="block text-sm font-medium text-gray-700">
+                        Status Distribusi <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <select name="status" id="status" 
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <option value="pengiriman" {% if distribusi.status == 'pengiriman' %}selected{% endif %}>
+                                Dalam Pengiriman
+                            </option>
+                            <option value="diterima" {% if distribusi.status == 'diterima' %}selected{% endif %}>
+                                Diterima
+                            </option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-gray-700">Tanggal Distribusi</label>
+                    <p class="text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
+                        {{ distribusi.created_at.strftime('%d/%m/%Y %H:%M') if distribusi.created_at else '-' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Buku yang Didistribusikan -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h4 class="text-base font-semibold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                Detail Buku yang Didistribusikan
+            </h4>
+        </div>
+        <div class="px-6 py-4">
+            {% if distribusi.detail_riwayat_distribusi %}
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    No
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Subjek Buku
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Jumlah
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for detail in distribusi.detail_riwayat_distribusi %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ loop.index }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ detail.subjek.nama if detail.subjek else '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <div class="flex items-center justify-center space-x-2">
+                                        <input type="number" 
+                                               name="detail_{{ detail.id }}_jumlah" 
+                                               value="{{ detail.jumlah }}" 
+                                               min="0" 
+                                               class="w-20 text-center text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-blue-500 focus:border-blue-500">
+                                        <span class="text-sm text-gray-600">buku</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-gray-50">
+                            <tr>
+                                <th colspan="2" class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                                    Total:
+                                </th>
+                                <td class="px-6 py-3 text-center text-sm font-semibold text-gray-900">
+                                    {{ distribusi.jumlah }} buku
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Tidak ada detail distribusi</h3>
+                    <p class="mt-1 text-sm text-gray-500">Belum ada data detail distribusi untuk ditampilkan.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bukti Foto -->
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h4 class="text-base font-semibold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Bukti Foto Distribusi
+            </h4>
+        </div>
+        <div class="px-6 py-4 space-y-6">
+            {% if distribusi.bukti_foto %}
+            <div class="space-y-2">
+                <label class="text-sm font-medium text-gray-700">Bukti Foto Saat Ini</label>
+                <div class="flex justify-center lg:justify-start">
+                    <div class="relative group">
+                        <img src="{{ url_for('static', filename='public/bukti-distribusi/' + distribusi.bukti_foto) }}" 
+                             alt="Bukti Distribusi" 
+                             class="max-w-xs h-auto rounded-lg shadow-lg border border-gray-200 transition-transform group-hover:scale-105"
+                             style="max-height: 300px;">
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="space-y-2">
+                <label for="bukti_foto" class="block text-sm font-medium text-gray-700">
+                    {{ 'Update Bukti Foto' if distribusi.bukti_foto else 'Upload Bukti Foto' }}
+                    <span class="text-red-500">*</span>
+                </label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
+                    <div class="space-y-1 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="flex text-sm text-gray-600">
+                            <label for="bukti_foto" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                <span>Upload a file</span>
+                                <input id="bukti_foto" 
+                                       name="bukti_foto" 
+                                       type="file" 
+                                       accept="image/*"
+                                       class="sr-only">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-gray-500">PNG, JPG, JPEG up to 5MB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+        <button type="button" 
+                onclick="window.history.back()" 
+                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+            Batal
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+            Simpan Perubahan
+        </button>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File upload preview
+    const fileInput = document.getElementById('bukti_foto');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Validate file size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ukuran file terlalu besar. Maksimal 5MB.');
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Format file tidak didukung. Gunakan PNG, JPG, atau JPEG.');
+                    this.value = '';
+                    return;
+                }
+                
+                console.log('File valid:', file.name);
+            }
+        });
+    }
+    
+    // Auto-calculate total when quantities change
+    const quantityInputs = document.querySelectorAll('input[name^="detail_"][name$="_jumlah"]');
+    quantityInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            let total = 0;
+            quantityInputs.forEach(inp => {
+                total += parseInt(inp.value) || 0;
+            });
+            
+            const totalCell = document.querySelector('tfoot td');
+            if (totalCell) {
+                totalCell.textContent = total + ' buku';
+            }
+        });
+    });
+});
+</script>

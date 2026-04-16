@@ -1,0 +1,1425 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/content_wrapper.html" import page_header, card %}
+
+{% block title %}Kebutuhan Koleksi{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.bootstrap5.min.css">
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  @media (max-width: 640px) {
+    .container {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+    
+    main {
+      padding-left: 0.5rem !important;
+      padding-right: 0.5rem !important;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .action-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  .action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .status-pending {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #f59e0b;
+  }
+  
+  .status-approved {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+  }
+  
+  .status-rejected {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #ef4444;
+  }
+
+  .priority-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    display: inline-block;
+  }
+  
+  .priority-sangat-dibutuhkan {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #ef4444;
+  }
+  
+  .priority-dibutuhkan {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #f59e0b;
+  }
+
+  /* Mobile responsive container */
+  @media (max-width: 640px) {
+    body {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    .container,
+    .bg-white.rounded-lg,
+    .bg-white.shadow-md {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+
+    .bg-white.p-4 {
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+
+    .mb-6 {
+      margin-bottom: 1rem !important;
+    }
+  }
+  
+  /* Enhanced DataTables styling */
+  .dataTables_wrapper {
+    font-family: inherit;
+    overflow: visible;
+  }
+  
+  .dataTables_length select,
+  .dataTables_filter input {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+    background-color: white !important;
+  }
+  
+  .dataTables_length select:focus,
+  .dataTables_filter input:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  .dataTables_length,
+  .dataTables_filter {
+    margin-bottom: 1rem;
+  }
+  
+  .dataTables_length label,
+  .dataTables_filter label {
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .dataTables_info {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 8px 0;
+  }
+  
+  .dataTables_paginate {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 14px;
+    flex-wrap: wrap;
+  }
+  
+  .dataTables_paginate .paginate_button {
+    padding: 6px 10px !important;
+    margin: 0 1px !important;
+    border-radius: 4px !important;
+    border: 1px solid #d1d5db !important;
+    background: white !important;
+    color: #374151 !important;
+    font-weight: 500;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .dataTables_paginate .paginate_button:hover:not(.disabled) {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .dataTables_paginate .paginate_button.current {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+  }
+  
+  .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    background: #f9fafb !important;
+    color: #9ca3af !important;
+  }
+  
+  .dataTables_paginate .paginate_button.disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .dataTables_paginate .paginate_button i {
+    font-size: 12px !important;
+  }
+  
+  .dataTables_wrapper .row:last-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  @media (max-width: 768px) {
+    .dataTables_wrapper .row:last-child {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .dataTables_paginate {
+      justify-content: center;
+      width: 100%;
+    }
+    
+    .dataTables_paginate .paginate_button {
+      padding: 5px 8px !important;
+      min-width: 28px !important;
+      height: 28px !important;
+      font-size: 13px !important;
+    }
+    
+    .dataTables_paginate .paginate_button i {
+      font-size: 11px !important;
+    }
+  }
+  
+  #map {
+    height: 300px;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+  
+  /* Detail Subjek Buku styling to match form subjek section */
+  .detail-subjek-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  .detail-subjek-item:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border-color: #d1d5db;
+  }
+  
+  .detail-subjek-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .detail-subjek-header {
+    display: flex;
+    justify-content: between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .detail-subjek-content {
+    flex: 1;
+  }
+  
+  .detail-subjek-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  
+  .detail-subjek-subtitle {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  
+  .detail-subjek-amount {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  
+  .detail-subjek-number {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 2px;
+  }
+  
+  .detail-subjek-label {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  
+  .detail-subjek-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  .detail-subjek-empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: #6b7280;
+    font-style: italic;
+    background: #f9fafb;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+  }
+  
+  .detail-subjek-empty i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+    color: #9ca3af;
+  }
+  
+  /* Responsive design for detail subjek */
+  @media (max-width: 640px) {
+    .detail-subjek-header {
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .detail-subjek-amount {
+      text-align: left;
+    }
+    
+    .detail-subjek-title {
+      font-size: 14px;
+    }
+    
+    .detail-subjek-number {
+      font-size: 16px;
+    }
+    
+    .detail-subjek-container {
+      padding: 12px;
+      max-height: 250px;
+    }
+    
+    .detail-subjek-item {
+      padding: 12px;
+    }
+  }
+
+  /* Additional mobile responsive improvements */
+  @media (max-width: 640px) {
+    #kebutuhanTable thead th {
+      font-size: 11px;
+      padding: 6px 3px;
+    }
+
+    #kebutuhanTable tbody td {
+      font-size: 11px;
+      padding: 6px 3px;
+      word-break: break-word;
+    }
+
+    #kebutuhanTable tbody tr {
+      display: table-row;
+    }
+
+    .status-badge {
+      font-size: 10px;
+      padding: 3px 6px;
+    }
+
+    .dataTables_length select,
+    .dataTables_filter input {
+      font-size: 12px !important;
+      padding: 4px 8px !important;
+    }
+
+    .dataTables_length label,
+    .dataTables_filter label {
+      font-size: 12px;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .dataTables_info {
+      font-size: 11px;
+    }
+  }
+  
+  /* Table wrapper for mobile horizontal scroll */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    display: block;
+  }
+  
+  #kebutuhanTable {
+    width: 100%;
+    min-width: 800px;
+    display: table;
+  }
+
+  @media (max-width: 640px) {
+    .table-responsive {
+      margin: 0 -1rem;
+      width: calc(100% + 2rem);
+      overflow-x: scroll !important;
+      -webkit-overflow-scrolling: touch;
+      display: block;
+      position: relative;
+    }
+
+    #kebutuhanTable {
+      font-size: 10px;
+      min-width: 900px;
+      table-layout: auto;
+      width: auto;
+    }
+
+    #kebutuhanTable thead {
+      font-size: 10px;
+    }
+
+    #kebutuhanTable th,
+    #kebutuhanTable td {
+      padding: 8px 6px !important;
+      white-space: nowrap;
+      font-size: 10px;
+    }
+
+    #kebutuhanTable th:first-child,
+    #kebutuhanTable td:first-child {
+      min-width: 90px;
+    }
+
+    #kebutuhanTable th:nth-child(2),
+    #kebutuhanTable td:nth-child(2) {
+      min-width: 150px;
+    }
+
+    #kebutuhanTable th:nth-child(3),
+    #kebutuhanTable td:nth-child(3) {
+      min-width: 120px;
+    }
+
+    #kebutuhanTable th:nth-child(4),
+    #kebutuhanTable td:nth-child(4) {
+      min-width: 70px;
+    }
+
+    #kebutuhanTable th:nth-child(5),
+    #kebutuhanTable td:nth-child(5) {
+      min-width: 130px;
+    }
+
+    #kebutuhanTable th:nth-child(6),
+    #kebutuhanTable td:nth-child(6) {
+      min-width: 90px;
+    }
+
+    #kebutuhanTable th:last-child,
+    #kebutuhanTable td:last-child {
+      min-width: 150px;
+    }
+
+    .action-buttons {
+      flex-direction: row;
+      gap: 4px;
+      justify-content: center;
+      flex-wrap: nowrap;
+    }
+
+    .action-btn {
+      padding: 4px 6px;
+      font-size: 10px;
+      min-width: 28px;
+      height: 26px;
+    }
+
+    .action-btn i {
+      width: 11px !important;
+      height: 11px !important;
+      font-size: 10px !important;
+    }
+
+    .status-badge,
+    .priority-badge {
+      font-size: 9px;
+      padding: 3px 6px;
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .dataTables_wrapper {
+      font-size: 11px;
+      overflow: visible;
+    }
+
+    .dataTables_length,
+    .dataTables_filter {
+      margin-bottom: 0.5rem;
+    }
+
+    .dataTables_length label,
+    .dataTables_filter label {
+      flex-direction: column;
+      align-items: flex-start;
+      font-size: 11px;
+    }
+
+    .dataTables_length select,
+    .dataTables_filter input {
+      font-size: 11px !important;
+      padding: 4px 6px !important;
+      margin-top: 4px;
+      width: 100%;
+      max-width: 180px;
+    }
+
+    .dataTables_paginate {
+      font-size: 11px;
+      margin-top: 12px;
+      justify-content: center;
+    }
+
+    .dataTables_paginate .paginate_button {
+      padding: 3px 6px !important;
+      min-width: 22px !important;
+      height: 22px !important;
+      font-size: 11px !important;
+      margin: 0 1px !important;
+    }
+
+    .dataTables_info {
+      font-size: 10px;
+      padding: 4px 0;
+    }
+
+    .dataTables_wrapper .row:last-child {
+      gap: 8px;
+    }
+  }
+
+</style>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Kebutuhan Koleksi", "Kelola dan ajukan kebutuhan koleksi perpustakaan Anda.") }}
+
+<div class="bg-white p-4 md:p-6 rounded-lg shadow-md mb-6" style="max-width: 100%; overflow-x: hidden;">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+    <h3 class="text-lg md:text-xl font-semibold text-blue-700">Daftar Kebutuhan Koleksi</h3>
+    <button type="button" onclick="checkProfilAndOpenModal()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center space-x-2">
+      <i class="fas fa-plus w-4 h-4"></i>
+      <span>Form Pengajuan</span>
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table id="kebutuhanTable" class="min-w-full text-xs md:text-sm text-gray-700 table-auto">
+      <thead class="bg-blue-100 text-blue-800">
+        <tr>
+          <th class="py-2 md:py-3 px-1 md:px-2 lg:px-4 text-left text-xs md:text-sm">Tanggal</th>
+          <th class="py-2 md:py-3 px-1 md:px-2 lg:px-4 text-left text-xs md:text-sm">Nama Perpus</th>
+          <th class="py-2 md:py-3 px-1 md:px-2 lg:px-4 text-left text-xs md:text-sm">Subjek</th>
+          <th class="py-2 md:py-3 px-1 md:px-2 lg:px-4 text-center text-xs md:text-sm">Jumlah</th>
+          <th class="py-2 md:py-3 px-1 md:px-2 lg:px-4 text-left text-xs md:text-sm">Prioritas</th>
+          <th class="py-2 md:py-3 px-1 md:px-2 lg:px-4 text-left text-xs md:text-sm">Status</th>
+          <th class="py-2 md:py-3 px-1 md:px-2 lg:px-4 text-center text-xs md:text-sm">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in data_kebutuhan %}
+        <tr class="border-b hover:bg-gray-50 text-xs md:text-sm">
+          <td class="py-2 px-1 md:px-2 lg:px-4" data-sort="{{ item.tanggal_pengajuan.strftime('%Y%m%d') }}">
+            {{ item.tanggal_pengajuan.strftime('%d-%m-%Y') }}
+          </td>
+          <td class="py-2 px-1 md:px-2 lg:px-4">
+            <div class="truncate text-xs md:text-sm" title="{{ item.perpus.nama }}">
+              {{ item.perpus.nama }}
+            </div>
+          </td>
+          <td class="py-2 px-1 md:px-2 lg:px-4">
+            <div class="truncate text-xs md:text-sm" title="{{ item.subjek_list if item.subjek_list else 'Tidak ada subjek' }}">
+              {{ item.subjek_list if item.subjek_list else 'Tidak ada subjek' }}
+            </div>
+          </td>
+          <td class="py-2 px-1 md:px-2 lg:px-4 text-center text-xs md:text-sm">{{ item.jumlah_buku }}</td>
+          <td class="py-2 px-1 md:px-2 lg:px-4">
+            <span class="priority-badge 
+              {% if item.prioritas == 'sangat_dibutuhkan' %}priority-sangat-dibutuhkan{% elif item.prioritas == 'dibutuhkan' %}priority-dibutuhkan{% endif %}">
+              {% if item.prioritas == 'sangat_dibutuhkan' %}
+                  Sangat Dibutuhkan
+              {% elif item.prioritas == 'dibutuhkan' %}
+                  Dibutuhkan
+              {% endif %}
+            </span>
+          </td>
+          <td class="py-2 px-1 md:px-2 lg:px-4">
+            <span class="status-badge 
+              {% if item.status == 'approved' %}status-approved{% elif item.status == 'rejected' %}status-rejected{% else %}status-pending{% endif %}">
+              {% if item.status == 'approved' %}Disetujui{% elif item.status == 'rejected' %}Ditolak{% else %}Pending{% endif %}
+            </span>
+          </td>
+          <td class="py-2 px-1 md:px-2 lg:px-4">
+            <div class="action-buttons">
+              <button onclick="viewDetail({{ item.id }})" 
+                      class="action-btn bg-blue-500 hover:bg-blue-600 text-white"
+                      title="Detail">
+                <i class="fas fa-eye w-3 h-3"></i>
+              </button>
+              {% if item.status == 'pending' %}
+              <button onclick="editKebutuhan({{ item.id }})" 
+                      class="action-btn bg-amber-500 hover:bg-amber-600 text-white"
+                      title="Edit">
+                <i class="fas fa-edit w-3 h-3"></i>
+              </button>
+              <button onclick="deleteKebutuhan({{ item.id }})" 
+                      class="action-btn bg-red-500 hover:bg-red-600 text-white"
+                      title="Hapus">
+                <i class="fas fa-trash w-3 h-3"></i>
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-0 md:top-10 mx-auto p-4 md:p-5 border w-full md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto m-0 md:m-auto">
+    <div class="mt-3">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg md:text-xl font-semibold text-gray-900">Detail Kebutuhan Koleksi</h3>
+        <button type="button" onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times w-5 md:w-6 h-5 md:h-6"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="space-y-6 text-sm md:text-base">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Tanggal Pengajuan</label>
+            <div id="detail-tanggal" class="p-2 bg-gray-50 border rounded text-xs md:text-sm"></div>
+          </div>
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Status</label>
+            <div id="detail-status" class="p-2"></div>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Nama Perpustakaan</label>
+          <div id="detail-nama" class="p-2 bg-gray-50 border rounded text-xs md:text-sm"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Subjek</label>
+            <div id="detail-subjek" class="p-2 bg-gray-50 border rounded text-xs md:text-sm"></div>
+          </div>
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Total Buku</label>
+            <div id="detail-jumlah" class="p-2 bg-gray-50 border rounded text-xs md:text-sm"></div>
+          </div>
+        </div>
+        
+        <!-- Detail Subjek Buku Section - Updated styling -->
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-3">Detail Subjek Buku</label>
+          <div class="detail-subjek-container">
+            <div id="detail-subjek-list" class="space-y-0">
+              <!-- Dynamic content will be inserted here with new styling -->
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Prioritas</label>
+          <div id="detail-prioritas" class="p-2"></div>
+        </div>
+        
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Alasan</label>
+          <div id="detail-alasan" class="p-2 bg-gray-50 border rounded text-xs md:text-sm min-h-16"></div>
+        </div>
+        
+        <!-- Pesan Section -->
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Pesan</label>
+          <div id="detail-pesan" class="p-2 bg-gray-50 border rounded text-xs md:text-sm min-h-16"></div>
+        </div>
+        
+        <div>
+          <label class="block text-xs md:text-sm font-medium text-gray-700 mb-3">Lokasi</label>
+          <div id="detail-lokasi-text" class="p-2 bg-gray-50 border rounded text-xs md:text-sm mb-3"></div>
+          <div id="map-container" class="hidden">
+            <div id="map" class="bg-gray-100 rounded-lg flex items-center justify-center text-gray-500 text-xs md:text-sm">
+              <div class="text-center">
+                <i class="fas fa-map-marker-alt text-2xl md:text-3xl mb-2"></i>
+                <p>Peta lokasi akan ditampilkan di sini</p>
+                <p class="text-xs">Koordinat: <span id="coordinates"></span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex justify-end mt-6">
+        <button type="button" onclick="closeDetailModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded transition duration-200 text-sm">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Form Modal -->
+<div id="kebutuhanModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-0 md:top-20 mx-auto p-4 md:p-5 border w-full md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto m-0 md:m-auto">
+    <div class="mt-3">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base md:text-lg font-semibold text-gray-900" id="modalTitle">Formulir Pengajuan Kebutuhan</h3>
+        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times w-4 md:w-5 h-4 md:h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="kebutuhanForm" method="POST" action="{{ url_for('admin.kebutuhan_koleksi') }}">
+        <input type="hidden" id="kebutuhan_id" name="kebutuhan_id" value="">
+        
+        <div class="space-y-3 md:space-y-4 text-sm md:text-base">
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Nama Perpustakaan Desa *</label>
+            <input type="text" id="nama_perpustakaan" name="nama_perpustakaan" 
+                   value="{{ perpus.nama if perpus else '' }}" 
+                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 p-2 text-xs md:text-sm" 
+                   readonly required>
+            <p class="text-xs text-gray-500 mt-1">Data diambil otomatis dari profil perpustakaan</p>
+          </div>
+          
+          <div id="subjek-container">
+            <div class="subjek-item">
+              <label class="block text-xs md:text-sm font-medium text-gray-700 mb-2">Subjek *</label>
+              <div class="flex gap-2 items-end flex-col md:flex-row">
+                <div class="flex-1 w-full">
+                  <select name="subjek_id[]" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 text-xs md:text-sm" required>
+                    <option value="">Pilih Subjek</option>
+                    {% for subjek in subjek_list %}
+                    <option value="{{ subjek.id }}">{{ subjek.nama }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="w-full md:w-32">
+                  <input type="number" name="jumlah_buku[]" min="1" placeholder="Jumlah" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 text-xs md:text-sm" required>
+                </div>
+                <button type="button" onclick="removeSubjek(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded hidden w-full md:w-auto text-xs">
+                  <i class="fas fa-minus w-3 h-3"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <button type="button" onclick="addSubjek()" class="bg-green-500 hover:bg-green-600 text-white px-3 md:px-4 py-2 rounded transition duration-200 flex items-center space-x-2 text-xs md:text-sm">
+              <i class="fas fa-plus w-3 h-3"></i>
+              <span>Tambah Subjek</span>
+            </button>
+          </div>
+          
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-2">Prioritas *</label>
+            <select id="prioritas" name="prioritas" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 text-xs md:text-sm" required>
+              <option value="">Pilih Prioritas</option>
+              <option value="sangat_dibutuhkan">Sangat Dibutuhkan</option>
+              <option value="dibutuhkan">Dibutuhkan</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-2">Lokasi</label>
+            <input type="text" id="lokasi" name="lokasi" 
+                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 text-xs md:text-sm"
+                   {% if detail_perpus and detail_perpus.lokasi %}readonly value="{{ detail_perpus.lokasi }}"{% endif %}>
+            {% if detail_perpus and detail_perpus.lokasi %}
+            <p class="text-xs text-gray-500 mt-1">Data diambil otomatis dari profil perpustakaan</p>
+            {% else %}
+            <p class="text-xs text-gray-500 mt-1">Lokasi belum diset di profil perpustakaan</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-2">Alasan Pengajuan</label>
+            <textarea id="alasan" name="alasan" rows="3 md:rows-4" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 text-xs md:text-sm" placeholder="Jelaskan alasan mengapa koleksi buku ini diperlukan..."></textarea>
+          </div>
+          
+          <!-- Status Information (Read-only for admin) -->
+          <div id="statusInfo" class="hidden">
+            <label class="block text-xs md:text-sm font-medium text-gray-700 mb-1">Status Pengajuan</label>
+            <div id="statusDisplay" class="mt-1 p-2 bg-gray-100 border border-gray-300 rounded-md text-xs md:text-sm text-gray-600">
+              Pending
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Status hanya dapat diubah oleh admin pusat</p>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex flex-col md:flex-row justify-end space-y-2 md:space-y-0 md:space-x-3 mt-6">
+          <button type="button" onclick="closeModal()" class="w-full md:w-auto bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded transition duration-200 text-sm">
+            Batal
+          </button>
+          <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition duration-200 text-sm">
+            Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+// Global variables
+let currentEditingId = null;
+
+// Initialize DataTable when DOM is ready
+$(document).ready(function() {
+  console.log('DOM Ready - Initializing DataTable');
+  
+  // Initialize DataTable
+  $('#kebutuhanTable').DataTable({
+    "language": {
+      "url": "//cdn.datatables.net/plug-ins/1.12.1/i18n/id.json",
+      "lengthMenu": "Tampilkan _MENU_ entri",
+      "search": "Cari:",
+      "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+      "infoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
+      "infoFiltered": "(disaring dari _MAX_ total entri)",
+      "paginate": {
+        "first": "Pertama",
+        "last": "Terakhir",
+        "next": '<i class="fa-solid fa-chevron-right"></i>',
+        "previous": '<i class="fa-solid fa-chevron-left"></i>'
+      }
+    },
+    "order": [[ 0, "desc" ]],
+    "pageLength": 10,
+    "responsive": true,
+    "scrollX": true,
+    "columnDefs": [
+      {
+        "targets": [0],
+        "type": "date",
+        "orderData": [0]
+      },
+      {
+        "targets": [6],
+        "orderable": false,
+        "searchable": false
+      }
+    ],
+    "initComplete": function() {
+      customizePagination();
+    },
+    "drawCallback": function() {
+      customizePagination();
+    }
+  });
+  
+  console.log('DataTable initialized successfully');
+});
+
+// Custom pagination styling function
+function customizePagination() {
+  setTimeout(function() {
+    const prevButton = $('.dataTables_paginate .paginate_button.previous');
+    const nextButton = $('.dataTables_paginate .paginate_button.next');
+    
+    if (prevButton.length && !prevButton.find('i').length) {
+      prevButton.html('<i class="fa-solid fa-chevron-left"></i>');
+    }
+    
+    if (nextButton.length && !nextButton.find('i').length) {
+      nextButton.html('<i class="fa-solid fa-chevron-right"></i>');
+    }
+  }, 50);
+}
+
+// Toast notification function
+function showToast(message, type = 'info', duration = 4000) {
+  let toastContainer = document.getElementById('toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'toast-container';
+    toastContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
+    document.body.appendChild(toastContainer);
+  }
+  
+  const toast = document.createElement('div');
+  
+  const typeClasses = {
+    'success': 'bg-green-500 text-white',
+    'error': 'bg-red-500 text-white',
+    'warning': 'bg-yellow-500 text-white',
+    'info': 'bg-blue-500 text-white'
+  };
+  
+  toast.className = `${typeClasses[type]} px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 max-w-sm`;
+  toast.innerHTML = `
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-medium">${message}</span>
+      <button onclick="closeToast(this)" class="ml-4 text-white hover:text-gray-200">
+        <i class="fas fa-times w-4 h-4"></i>
+      </button>
+    </div>
+  `;
+  
+  toastContainer.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.remove('translate-x-full', 'opacity-0');
+  }, 100);
+  
+  setTimeout(() => {
+    closeToast(toast.querySelector('button'));
+  }, duration);
+}
+
+function closeToast(button) {
+  const toast = button.closest('div').parentElement;
+  toast.classList.add('translate-x-full', 'opacity-0');
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 300);
+}
+
+// Check if profile is complete before allowing form submission
+function checkProfilAndOpenModal() {
+  console.log('checkProfilAndOpenModal called');
+  try {
+    {% if not detail_perpus %}
+      showToast('Silakan lengkapi profil perpustakaan terlebih dahulu!', 'warning');
+      setTimeout(() => {
+        window.location.href = '{{ url_for("admin.profil_perpustakaan") }}';
+      }, 2000);
+      return;
+    {% elif not detail_perpus.penanggung_jawab or not detail_perpus.deskripsi or not detail_perpus.lokasi %}
+      showToast('Silakan lengkapi profil perpustakaan terlebih dahulu!', 'warning');
+      setTimeout(() => {
+        window.location.href = '{{ url_for("admin.profil_perpustakaan") }}';
+      }, 2000);
+      return;
+    {% else %}
+      openModal();
+    {% endif %}
+  } catch (error) {
+    console.error('Error in checkProfilAndOpenModal:', error);
+    alert('Terjadi kesalahan. Silakan coba lagi.');
+  }
+}
+
+// View detail function
+async function viewDetail(id) {
+  console.log('viewDetail called with ID:', id);
+  try {
+    clearDetailModal();
+    
+    const response = await fetch(`/admin/kebutuhan-koleksi/${id}/edit`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Detail data received:', data);
+    
+    if (data.success) {
+      const item = data.data;
+      
+      // Populate modal fields
+      document.getElementById('detail-tanggal').textContent = item.tanggal_pengajuan || 'Tidak tersedia';
+      document.getElementById('detail-nama').textContent = item.perpus_nama || 'Tidak tersedia';
+      document.getElementById('detail-subjek').textContent = item.details ? item.details.map(d => d.subjek_nama).join(', ') : 'Tidak tersedia';
+      document.getElementById('detail-jumlah').textContent = item.details ? item.details.reduce((sum, d) => sum + d.jumlah_buku, 0) + ' buku' : '0 buku';
+      document.getElementById('detail-alasan').textContent = item.alasan || 'Tidak ada alasan khusus';
+      document.getElementById('detail-pesan').textContent = item.pesan || 'Belum ada pesan dari admin pusat';
+      
+      // Populate detailed subjects list with new styling
+      const detailSubjekList = document.getElementById('detail-subjek-list');
+      if (item.details && item.details.length > 0) {
+        detailSubjekList.innerHTML = '';
+        item.details.forEach((detail, index) => {
+          const subjekItem = document.createElement('div');
+          subjekItem.className = 'detail-subjek-item';
+          subjekItem.innerHTML = `
+            <div class="detail-subjek-header">
+              <div class="detail-subjek-content">
+                <div class="detail-subjek-title">${detail.subjek_nama}</div>
+              </div>
+              <div class="detail-subjek-amount">
+                <div class="detail-subjek-number">${detail.jumlah_buku}</div>
+                <div class="detail-subjek-label">Buku</div>
+              </div>
+            </div>
+          `;
+          detailSubjekList.appendChild(subjekItem);
+        });
+      } else {
+        detailSubjekList.innerHTML = `
+          <div class="detail-subjek-empty">
+            <i class="fas fa-book-open"></i>
+            <div>Tidak ada detail subjek tersedia</div>
+          </div>
+        `;
+      }
+      
+      // Status badge
+      const statusElement = document.getElementById('detail-status');
+      let statusClass = 'status-pending';
+      let statusText = 'Pending';
+      
+      if (item.status === 'approved') {
+        statusClass = 'status-approved';
+        statusText = 'Disetujui';
+      } else if (item.status === 'rejected') {
+        statusClass = 'status-rejected';
+        statusText = 'Ditolak';
+      }
+      
+      statusElement.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
+      
+      // Priority badge
+      const prioritasElement = document.getElementById('detail-prioritas');
+      let priorityClass = 'bg-green-100 text-green-800';
+      if (item.prioritas === 'sangat_dibutuhkan') priorityClass = 'bg-red-100 text-red-800';
+      else if (item.prioritas === 'dibutuhkan') priorityClass = 'bg-yellow-100 text-yellow-800';
+
+      const priorityText = item.prioritas ? item.prioritas.charAt(0).toUpperCase() + item.prioritas.slice(1) : 'Tidak diset';
+      prioritasElement.innerHTML = `<span class="px-2 py-1 rounded text-xs font-medium ${priorityClass}">${priorityText}</span>`;
+      
+      // Location
+      const lokasiText = document.getElementById('detail-lokasi-text');
+      if (item.lokasi && item.lokasi.includes('google.com/maps')) {
+        lokasiText.innerHTML = `<a href="${item.lokasi}" target="_blank" class="text-blue-600 hover:underline break-all">${item.lokasi}</a>`;
+      } else {
+        lokasiText.textContent = item.lokasi || 'Lokasi tidak tersedia';
+      }
+      
+      // Show modal
+      document.getElementById('detailModal').classList.remove('hidden');
+      
+    } else {
+      throw new Error(data.message || 'Gagal memuat data');
+    }
+  } catch (error) {
+    console.error('Error loading detail:', error);
+    showToast('Gagal memuat detail: ' + error.message, 'error');
+  }
+}
+
+function clearDetailModal() {
+  const elementsToClean = [
+    'detail-tanggal', 'detail-nama', 'detail-subjek', 
+    'detail-jumlah', 'detail-alasan', 'detail-status', 
+    'detail-prioritas', 'detail-lokasi-text', 'detail-pesan'
+  ];
+  
+  elementsToClean.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.textContent = '';
+      element.innerHTML = '';
+    }
+  });
+  
+  const detailSubjekList = document.getElementById('detail-subjek-list');
+  if (detailSubjekList) {
+    detailSubjekList.innerHTML = '';
+  }
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.add('hidden');
+  clearDetailModal();
+}
+
+// Modal functions
+function openModal(isEdit = false) {
+  console.log('openModal called, isEdit:', isEdit);
+  try {
+    const modal = document.getElementById('kebutuhanModal');
+    modal.classList.remove('hidden');
+    
+    if (!isEdit) {
+      document.getElementById('kebutuhanForm').reset();
+      document.getElementById('kebutuhan_id').value = '';
+      document.getElementById('modalTitle').textContent = 'Formulir Pengajuan Kebutuhan';
+      document.getElementById('statusInfo').classList.add('hidden');
+      
+      // Reset subjek container to have one empty item
+      resetSubjekContainer();
+    }
+  } catch (error) {
+    console.error('Error in openModal:', error);
+    showToast('Terjadi kesalahan saat membuka form.', 'error');
+  }
+}
+
+function closeModal() {
+  try {
+    const modal = document.getElementById('kebutuhanModal');
+    modal.classList.add('hidden');
+    document.getElementById('kebutuhanForm').reset();
+    resetSubjekContainer();
+  } catch (error) {
+    console.error('Error in closeModal:', error);
+  }
+}
+
+function resetSubjekContainer() {
+  const container = document.getElementById('subjek-container');
+  container.innerHTML = `
+    <div class="subjek-item">
+      <label class="block text-sm font-medium text-gray-700">Subjek *</label>
+      <div class="flex gap-2 items-end">
+        <div class="flex-1">
+          <select name="subjek_id[]" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2" required>
+            <option value="">Pilih Subjek</option>
+            {% for subjek in subjek_list %}
+            <option value="{{ subjek.id }}">{{ subjek.nama }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="w-24">
+          <input type="number" name="jumlah_buku[]" min="1" placeholder="Jumlah" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2" required>
+        </div>
+        <button type="button" onclick="removeSubjek(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded hidden">
+          <i class="fas fa-minus w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Delete function
+function deleteKebutuhan(id) {
+  console.log('deleteKebutuhan called with ID:', id);
+  try {
+    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+      fetch(`/admin/kebutuhan-koleksi/${id}/delete`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(response => {
+        console.log('Delete response status:', response.status);
+        return response.json();
+      })
+      .then(data => {
+        console.log('Delete response data:', data);
+        if (data.success) {
+          showToast('Data berhasil dihapus', 'success');
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        } else {
+          showToast('Gagal menghapus data: ' + (data.message || 'Unknown error'), 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showToast('Terjadi kesalahan saat menghapus data', 'error');
+      });
+    }
+  } catch (error) {
+    console.error('Error in deleteKebutuhan:', error);
+    showToast('Terjadi kesalahan saat menghapus data', 'error');
+  }
+}
+
+// Add subjek functions
+function addSubjek() {
+  console.log('addSubjek called');
+  try {
+    const container = document.getElementById('subjek-container');
+    const subjekItem = document.createElement('div');
+    subjekItem.className = 'subjek-item mt-2';
+    
+    subjekItem.innerHTML = `
+      <div class="flex gap-2 items-end">
+        <div class="flex-1">
+          <select name="subjek_id[]" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2" required>
+            <option value="">Pilih Subjek</option>
+            {% for subjek in subjek_list %}
+            <option value="{{ subjek.id }}">{{ subjek.nama }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="w-24">
+          <input type="number" name="jumlah_buku[]" min="1" placeholder="Jumlah" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2" required>
+        </div>
+        <button type="button" onclick="removeSubjek(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded">
+          <i class="fas fa-minus w-4 h-4"></i>
+        </button>
+      </div>
+    `;
+    
+    container.appendChild(subjekItem);
+    updateRemoveButtons();
+  } catch (error) {
+    console.error('Error in addSubjek:', error);
+  }
+}
+
+function removeSubjek(button) {
+  console.log('removeSubjek called');
+  try {
+    button.closest('.subjek-item').remove();
+    updateRemoveButtons();
+  } catch (error) {
+    console.error('Error in removeSubjek:', error);
+  }
+}
+
+function updateRemoveButtons() {
+  try {
+    const subjekItems = document.querySelectorAll('.subjek-item');
+    subjekItems.forEach((item, index) => {
+      const removeButton = item.querySelector('button[onclick*="removeSubjek"]');
+      if (removeButton) {
+        if (subjekItems.length > 1) {
+          removeButton.classList.remove('hidden');
+        } else {
+          removeButton.classList.add('hidden');
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error in updateRemoveButtons:', error);
+  }
+}
+
+// Edit function
+async function editKebutuhan(id) {
+  console.log('editKebutuhan called with ID:', id);
+  try {
+    currentEditingId = id;
+    const response = await fetch(`/admin/kebutuhan-koleksi/${id}/edit`);
+    const data = await response.json();
+    
+    console.log('Edit data received:', data);
+    
+    if (data.success) {
+      document.getElementById('kebutuhan_id').value = data.data.id;
+      document.getElementById('nama_perpustakaan').value = data.data.perpus_nama;
+      document.getElementById('prioritas').value = data.data.prioritas;
+      document.getElementById('lokasi').value = data.data.lokasi || '';
+      document.getElementById('alasan').value = data.data.alasan || '';
+
+      // Clear existing subjek items and populate with data
+      const container = document.getElementById('subjek-container');
+      container.innerHTML = '';
+      
+      if (data.data.details && data.data.details.length > 0) {
+        data.data.details.forEach((detail, index) => {
+          const subjekItem = document.createElement('div');
+          subjekItem.className = 'subjek-item' + (index > 0 ? ' mt-2' : '');
+          
+          let labelHTML = '';
+          if (index === 0) {
+            labelHTML = '<label class="block text-sm font-medium text-gray-700">Subjek *</label>';
+          }
+          
+          subjekItem.innerHTML = `
+            ${labelHTML}
+            <div class="flex gap-2 items-end">
+              <div class="flex-1">
+                <select name="subjek_id[]" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2" required>
+                  <option value="">Pilih Subjek</option>
+                  {% for subjek in subjek_list %}
+                  <option value="{{ subjek.id }}">{{ subjek.nama }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="w-24">
+                <input type="number" name="jumlah_buku[]" min="1" placeholder="Jumlah" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2" required>
+              </div>
+              <button type="button" onclick="removeSubjek(this)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded ${index === 0 && data.data.details.length === 1 ? 'hidden' : ''}">
+                <i class="fas fa-minus w-4 h-4"></i>
+              </button>
+            </div>
+          `;
+          
+          container.appendChild(subjekItem);
+          
+          const select = subjekItem.querySelector('select[name="subjek_id[]"]');
+          const input = subjekItem.querySelector('input[name="jumlah_buku[]"]');
+          select.value = detail.subjek_id;
+          input.value = detail.jumlah_buku;
+        });
+      } else {
+        resetSubjekContainer();
+      }
+
+      // Show status info for existing records
+      const statusInfo = document.getElementById('statusInfo');
+      const statusDisplay = document.getElementById('statusDisplay');
+      
+      if (statusInfo && statusDisplay && data.data.status) {
+        statusInfo.classList.remove('hidden');
+        let statusText = 'Pending';
+        let statusClass = 'text-yellow-600';
+        
+        if (data.data.status === 'approved') {
+          statusText = 'Disetujui';
+          statusClass = 'text-green-600';
+        } else if (data.data.status === 'rejected') {
+          statusText = 'Ditolak';
+          statusClass = 'text-red-600';
+        }
+        
+        statusDisplay.textContent = statusText;
+        statusDisplay.className = `mt-1 p-2 bg-gray-100 border border-gray-300 rounded-md text-sm ${statusClass}`;
+      }
+      
+      document.getElementById('modalTitle').textContent = 'Edit Kebutuhan Koleksi';
+      openModal(true);
+    } else {
+      throw new Error(data.message || 'Failed to load data');
+    }
+  } catch (error) {
+    console.error('Error in editKebutuhan:', error);
+    showToast('Gagal memuat data: ' + error.message, 'error');
+  }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('kebutuhanModal');
+  const detailModal = document.getElementById('detailModal');
+  
+  if (event.target == modal) {
+    closeModal();
+  } else if (event.target == detailModal) {
+    closeDetailModal();
+  }
+}
+
+// Global error handler
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+  console.error('Global error:', msg, 'at', url, ':', lineNo, ':', columnNo);
+  return false;
+};
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: donasi-web
+    restart: always
+    env_file: .env
+    volumes:
+      - donasi_instance:/app/instance
+      - donasi_static:/app/app/static
+    networks:
+      - shared-network
+
+volumes:
+  donasi_instance:
+  donasi_static:
+
+networks:
+  shared-network:
+    external: true

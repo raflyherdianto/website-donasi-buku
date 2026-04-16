@@ -1,0 +1,85 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container %}
+
+{% block title %}
+FAQ - Donasi Buku Lumajang
+{% endblock %}
+
+{% block content %}
+{% call content_container("7xl", "px-4 sm:px-6 py-10") %}
+    <div class="text-center mb-8 sm:mb-12">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-500 mb-4">Pertanyaan Umum (FAQ)</h1>
+        <p class="text-gray-600 text-base sm:text-lg">Temukan jawaban atas pertanyaan yang sering diajukan tentang donasi buku.</p>
+    </div>
+
+    <div class="space-y-4 sm:space-y-6 max-w-4xl mx-auto">
+
+        <!-- FAQ Item 1 -->
+        <details class="group bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+            <summary class="flex items-center justify-between cursor-pointer text-gray-800 font-semibold text-base sm:text-lg">
+                <span class="pr-4">1. Apa saja jenis donasi yang bisa saya berikan?</span>
+                <svg class="w-5 h-5 text-blue-600 transition-transform duration-300 group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </summary>
+            <p class="mt-4 text-gray-700 text-sm sm:text-base leading-relaxed">Bisa berdonasi dalam bentuk buku (dalam kondisi baik dan layak baca).</p>
+        </details>
+
+        <!-- FAQ Item 2 -->
+        <details class="group bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+            <summary class="flex items-center justify-between cursor-pointer text-gray-800 font-semibold text-base sm:text-lg">
+                <span class="pr-4">2. Apakah saya bisa memilih sendiri perpustakaan desa yang ingin saya bantu?</span>
+                <svg class="w-5 h-5 text-blue-600 transition-transform duration-300 group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </summary>
+            <p class="mt-4 text-gray-700 text-sm sm:text-base leading-relaxed">Tidak secara langsung. Semua donasi dikelola oleh Perpustakaan Umum agar distribusinya merata ke seluruh perpustakaan desa yang membutuhkan.</p>
+        </details>
+
+        <!-- FAQ Item 3 -->
+        <details class="group bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+            <summary class="flex items-center justify-between cursor-pointer text-gray-800 font-semibold text-base sm:text-lg">
+                <span class="pr-4">3. Bagaimana saya tahu donasi saya digunakan dengan benar?</span>
+                <svg class="w-5 h-5 text-blue-600 transition-transform duration-300 group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </summary>
+            <p class="mt-4 text-gray-700 text-sm sm:text-base leading-relaxed">Kami menyediakan halaman Transparansi Donasi yang menampilkan laporan penggunaan aktifitas dan buku secara real-time.</p>
+        </details>
+
+        <!-- FAQ Item 4 -->
+        <details class="group bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+            <summary class="flex items-center justify-between cursor-pointer text-gray-800 font-semibold text-base sm:text-lg">
+                <span class="pr-4">4. Apakah ada batas minimal jumlah buku atau uang untuk berdonasi?</span>
+                <svg class="w-5 h-5 text-blue-600 transition-transform duration-300 group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </summary>
+            <p class="mt-4 text-gray-700 text-sm sm:text-base leading-relaxed">Tidak ada, satu buku pun sangat berarti.</p>
+        </details>
+
+        <!-- FAQ Item 5 -->
+        <details class="group bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+            <summary class="flex items-center justify-between cursor-pointer text-gray-800 font-semibold text-base sm:text-lg">
+                <span class="pr-4">5. Apakah donasi buku ini hanya mencakup satu wilayah saja?</span>
+                <svg class="w-5 h-5 text-blue-600 transition-transform duration-300 group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </summary>
+            <p class="mt-4 text-gray-700 text-sm sm:text-base leading-relaxed">Donatur dalam program ini berasal dari berbagai wilayah, tidak terbatas pada Lumajang. Partisipasi bersifat terbuka bagi siapa pun yang ingin berkontribusi dalam mendukung peningkatan literasi melalui donasi buku.</p>
+        </details>
+
+        <!-- FAQ Item 6 -->
+        <details class="group bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+            <summary class="flex items-center justify-between cursor-pointer text-gray-800 font-semibold text-base sm:text-lg">
+                <span class="pr-4">6. Apakah data pribadi saya aman?</span>
+                <svg class="w-5 h-5 text-blue-600 transition-transform duration-300 group-open:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </summary>
+            <p class="mt-4 text-gray-700 text-sm sm:text-base leading-relaxed">Ya. Kami menjamin keamanan dan privasi datamu. Informasi tidak akan dibagikan tanpa izin.</p>
+        </details>
+        
+    </div>
+{% endcall %}
+{% endblock %}

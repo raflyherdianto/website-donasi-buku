@@ -1,0 +1,324 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% from "superadmin/content_wrapper.html" import page_header, card %}
+
+{% block title %}Test Email Configuration{% endblock %}
+
+{% block extra_head %}
+<style>
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+  }
+  
+  .btn-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+  
+  .alert-success {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+  }
+  
+  .alert-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+  }
+  
+  .info-box {
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .info-box h4 {
+    color: #0369a1;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  
+  .info-box p {
+    color: #0369a1;
+    margin: 0;
+    font-size: 0.875rem;
+  }
+  
+  .config-status {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .config-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .config-item:last-child {
+    border-bottom: none;
+  }
+  
+  .config-label {
+    font-weight: 500;
+    color: #374151;
+  }
+  
+  .config-value {
+    font-family: monospace;
+    background: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+  }
+  
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .status-configured {
+    background: #d1fae5;
+    color: #065f46;
+  }
+  
+  .status-missing {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Test Email Configuration", "Uji konfigurasi email untuk memastikan notifikasi donasi dapat dikirim dengan baik.") }}
+
+{% call card("Email Configuration Status") %}
+  <div class="config-status">
+    <div class="config-item">
+      <span class="config-label">MAIL_SERVER:</span>
+      <span class="config-value">{{ config.MAIL_SERVER or 'Not configured' }}</span>
+    </div>
+    <div class="config-item">
+      <span class="config-label">MAIL_PORT:</span>
+      <span class="config-value">{{ config.MAIL_PORT or 'Not configured' }}</span>
+    </div>
+    <div class="config-item">
+      <span class="config-label">MAIL_USERNAME:</span>
+      <span class="config-value">{{ config.MAIL_USERNAME or 'Not configured' }}</span>
+    </div>
+    <div class="config-item">
+      <span class="config-label">MAIL_USE_TLS:</span>
+      <span class="config-value">{{ config.MAIL_USE_TLS or 'Not configured' }}</span>
+    </div>
+    <div class="config-item">
+      <span class="config-label">Environment Variables:</span>
+      <span class="config-value">
+        {% set env_vars = [
+          ('MAIL_SERVER', config.MAIL_SERVER),
+          ('MAIL_PORT', config.MAIL_PORT),
+          ('MAIL_USERNAME', config.MAIL_USERNAME),
+          ('MAIL_PASSWORD', '***' if config.MAIL_PASSWORD else None)
+        ] %}
+        {% for var_name, var_value in env_vars %}
+          {{ var_name }}={{ var_value or 'Not set' }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      </span>
+    </div>
+    <div class="config-item">
+      <span class="config-label">Configuration Status:</span>
+      {% if config.MAIL_USERNAME and config.MAIL_PASSWORD %}
+        <span class="status-indicator status-configured">
+          <i class="fas fa-check-circle"></i>
+          Configured
+        </span>
+      {% else %}
+        <span class="status-indicator status-missing">
+          <i class="fas fa-exclamation-circle"></i>
+          Missing Configuration
+        </span>
+      {% endif %}
+    </div>
+  </div>
+{% endcall %}
+
+{% call card("Send Test Email") %}
+  <div class="info-box">
+    <h4><i class="fas fa-info-circle mr-2"></i>Informasi</h4>
+    <p>Gunakan form ini untuk menguji konfigurasi email. Email test akan dikirim ke alamat yang Anda masukkan untuk memverifikasi bahwa sistem email berfungsi dengan baik.</p>
+  </div>
+
+  <div id="alertContainer"></div>
+
+  <form id="testEmailForm">
+    <div class="form-group">
+      <label for="email" class="form-label">
+        <i class="fas fa-envelope mr-2"></i>Email Tujuan Test
+      </label>
+      <input 
+        type="email" 
+        id="email" 
+        name="email" 
+        class="form-input" 
+        placeholder="masukkan@email.com"
+        required
+      >
+      <small class="text-gray-600 mt-1 block">
+        Masukkan alamat email yang akan menerima test email
+      </small>
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="sendBtn">
+      <i class="fas fa-paper-plane mr-2"></i>
+      <span id="btnText">Kirim Test Email</span>
+    </button>
+  </form>
+{% endcall %}
+
+{% if not config.MAIL_USERNAME or not config.MAIL_PASSWORD %}
+{% call card("Setup Email Configuration") %}
+  <div class="info-box">
+    <h4><i class="fas fa-exclamation-triangle mr-2"></i>Konfigurasi Email Belum Lengkap</h4>
+    <p>Untuk menggunakan fitur email, Anda perlu mengkonfigurasi environment variables berikut di file .env:</p>
+  </div>
+  
+  <div class="bg-gray-100 p-4 rounded-lg font-mono text-sm">
+    <div class="text-gray-600 mb-2"># Email Configuration</div>
+    <div>MAIL_SERVER=smtp.gmail.com</div>
+    <div>MAIL_PORT=587</div>
+    <div>MAIL_USE_TLS=true</div>
+    <div>MAIL_USERNAME=donasiperpuslumajang@gmail.com</div>
+    <div>MAIL_PASSWORD=your_app_password_here</div>
+    <div>MAIL_DEFAULT_SENDER=donasiperpuslumajang@gmail.com</div>
+  </div>
+  
+  <div class="mt-4 text-sm text-gray-600">
+    <p><strong>Catatan:</strong> Untuk Gmail, gunakan App Password, bukan password biasa. Pastikan 2-Factor Authentication sudah diaktifkan.</p>
+  </div>
+{% endcall %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('testEmailForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const sendBtn = document.getElementById('sendBtn');
+    const btnText = document.getElementById('btnText');
+    const alertContainer = document.getElementById('alertContainer');
+    
+    // Show loading state
+    sendBtn.disabled = true;
+    btnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Mengirim...';
+    
+    // Clear previous alerts
+    alertContainer.innerHTML = '';
+    
+    fetch('/superadmin/test-email', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alertContainer.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    ${data.message}
+                </div>
+            `;
+        } else {
+            alertContainer.innerHTML = `
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    ${data.message}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alertContainer.innerHTML = `
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                Terjadi kesalahan saat mengirim email test
+            </div>
+        `;
+    })
+    .finally(() => {
+        // Restore button state
+        sendBtn.disabled = false;
+        btnText.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Kirim Test Email';
+    });
+});
+</script>
+{% endblock %}

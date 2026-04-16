@@ -1,0 +1,119 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container, grid_container, news_card, page_header %}
+
+{% block title %}{{ perpus.nama }} - PerpusDes Kabupaten Lumajang{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+{{ page_header(perpus.nama, "Profil lengkap perpustakaan desa") }}
+
+{% call content_container("7xl", "px-4 sm:px-6 py-4") %}
+    
+    <!-- Back Button -->
+    <a href="{{ url_for('public.perpusdes') }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8 font-medium transition-colors">
+        <i class="fa-solid fa-arrow-left mr-2"></i>
+        Kembali ke Daftar Perpustakaan
+    </a>
+
+    <!-- Perpus Profile Section -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+        <div class="md:flex md:gap-6">
+            <!-- Image Section -->
+            <div class="md:w-1/3 p-6">
+                {% if detail.foto_perpus %}
+                <img src="{{ url_for('static', filename='public/foto-perpus/' + detail.foto_perpus) }}" 
+                     alt="{{ perpus.nama }}" 
+                     class="w-full h-auto max-h-80 object-contain mx-auto rounded-lg shadow-sm">
+                {% else %}
+                <div class="w-full h-80 bg-gray-200 flex items-center justify-center rounded-lg">
+                    <i class="fas fa-building text-6xl text-gray-400"></i>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Content Section -->
+            <div class="md:w-2/3 p-6 md:py-6 md:pr-8 md:pl-0">
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">{{ perpus.nama }}</h1>
+                
+                <!-- Basic Info -->
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-700 mb-2 text-base">Informasi Lokasi</h3>
+                        <p class="text-gray-600 mb-1 text-base"><i class="fas fa-map-marker-alt mr-2 text-blue-600"></i>Kecamatan: {{ perpus.kecamatan }}</p>
+                        <p class="text-gray-600 mb-1 text-base"><i class="fas fa-map-marker-alt mr-2 text-blue-600"></i>Desa: {{ perpus.desa }}</p>
+                        <p class="text-gray-600 text-base"><i class="fas fa-user mr-2 text-blue-600"></i>Penanggung Jawab: {{ detail.penanggung_jawab }}</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-gray-700 mb-2 text-base">Statistik Koleksi</h3>
+                        <p class="text-gray-600 mb-1 text-base"><i class="fas fa-book mr-2 text-green-600"></i>Jumlah Koleksi: {{ detail.jumlah_koleksi or 0 }} buku</p>
+                        <p class="text-gray-600 mb-1 text-base"><i class="fas fa-copy mr-2 text-green-600"></i>Jumlah Eksemplar: {{ detail.jumlah_eksemplar or 0 }}</p>
+                        {% if detail.jam_operasional_mulai and detail.jam_operasional_selesai %}
+                        <p class="text-gray-600 text-base"><i class="fas fa-clock mr-2 text-purple-600"></i>Jam Operasional: {{ detail.jam_operasional_mulai.strftime('%H:%M') }} - {{ detail.jam_operasional_selesai.strftime('%H:%M') }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-700 mb-2 text-base">Deskripsi</h3>
+                    <p class="text-gray-600 leading-relaxed text-base">{{ detail.deskripsi }}</p>
+                </div>
+
+                <!-- Background -->
+                {% if detail.latar_belakang %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-700 mb-2 text-base">Latar Belakang</h3>
+                    <p class="text-gray-600 leading-relaxed text-base">{{ detail.latar_belakang }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Collection Types -->
+                {% if detail.koleksi_buku %}
+                <div class="mb-6">
+                    <h3 class="font-semibold text-gray-700 mb-2 text-base">Jenis Koleksi</h3>
+                    <p class="text-gray-600 text-base">{{ detail.koleksi_buku }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Location Map -->
+                {% if detail.lokasi %}
+                <div>
+                    <h3 class="font-semibold text-gray-700 mb-2 text-base">Lokasi</h3>
+                    <a href="{{ detail.lokasi }}" target="_blank" 
+                       class="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors text-base">
+                        <i class="fas fa-map-marked-alt mr-2"></i>
+                        Lihat di Google Maps
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- News Section -->
+    {% if related_news %}
+    <div class="mb-8">
+        <h2 class="text-2xl md:text-3xl font-bold text-center mb-8 text-gray-800">Berita & Kegiatan {{ perpus.nama }}</h2>
+        
+        {% call grid_container("grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", "gap-6 sm:gap-8") %}
+            {% for news in related_news %}
+                {{ news_card(news) }}
+            {% endfor %}
+        {% endcall %}
+    </div>
+    {% else %}
+    <!-- No News -->
+    <div class="bg-gray-50 rounded-xl shadow-md p-8 text-center">
+        <div class="flex flex-col items-center">
+            <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">Belum Ada Berita</h3>
+            <p class="text-gray-500">Berita dan kegiatan dari {{ perpus.nama }} akan ditampilkan di sini.</p>
+        </div>
+    </div>
+    {% endif %}
+
+{% endcall %}
+{% endblock %}

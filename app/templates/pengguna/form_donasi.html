@@ -1,0 +1,293 @@
+{% extends "pengguna/base_public.html" %}
+
+{% block title %}Formulir Donasi Buku{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  /* Custom styling for select elements to match input font size */
+  .select-subjek {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Ensure TomSelect dropdown also has consistent font size */
+  .ts-control {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+  
+  .ts-control .item {
+    font-size: 16px !important;
+  }
+  
+  .ts-dropdown-content {
+    font-size: 16px !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ISI UTAMA -->
+<div class="container mx-auto px-4 py-10">
+  <div class="w-full max-w-5xl mx-auto bg-white p-10 shadow-xl rounded-xl">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row items-center mb-6 gap-4">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="w-24 h-24">
+      <div class="text-center md:text-left">
+        <h1 class="text-2xl font-bold text-gray-800 leading-snug">
+          DINAS KEARSIPAN DAN PERPUSTAKAAN<br>KABUPATEN LUMAJANG
+        </h1>
+        <p class="text-sm text-gray-600 italic mt-1">
+          Bersama kita wujudkan pemerataan literasi di seluruh pelosok desa Kabupaten Lumajang melalui donasi buku yang bermanfaat dan tepat sasaran.
+        </p>
+      </div>
+    </div>
+
+    <hr class="border-t-2 border-gray-300 my-6">
+
+    <!-- Judul Formulir -->
+    <h2 class="text-3xl font-semibold text-center text-blue-800 mb-8">Formulir Donasi Buku</h2>
+
+    <!-- Formulir -->
+    <form action="{{ url_for('public.formulir_donasi') }}" method="POST">
+      <!-- Nama -->
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700">Nama Donatur</label>
+        <input type="text" name="nama" value="{{ user.full_name }}" readonly class="w-full px-4 py-3 border rounded-lg bg-gray-50" />
+      </div>
+
+      <!-- Email -->
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700">Email</label>
+        <input type="email" name="email" value="{{ user.email }}" required class="w-full px-4 py-3 border rounded-lg bg-gray-50" />
+      </div>
+
+      <!-- WhatsApp -->
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700">Nomor WhatsApp</label>
+        <input type="text" name="whatsapp" placeholder="081234567890" required class="w-full px-4 py-3 border rounded-lg bg-gray-50" />
+      </div>
+
+      <!-- Subjek Buku -->
+      <div class="mb-6">
+        <label class="block text-sm font-semibold text-gray-700 text-center mb-3">Subjek Buku dan Jumlah</label>
+        <div id="subjek-container" class="space-y-4">
+          <!-- Subjek Entry Template -->
+          <div class="subjek-entry bg-gray-50 p-4 rounded border" data-subjek-index="0">
+            <div class="flex flex-col md:flex-row md:items-center gap-4 mb-3">
+              <select name="subjek_buku[]" required class="select-subjek w-full md:w-2/5 px-4 py-2 border rounded text-base">
+                <option value="">-- Pilih Subjek --</option>
+                {% for subjek in subjek_list %}
+                <option value="{{ subjek.id }}">{{ subjek.nama }}</option>
+                {% endfor %}
+              </select>
+              <input type="number" name="jumlah_judul[]" placeholder="Contoh: 5" required min="1" 
+                     class="input-jumlah-judul w-full md:w-1/4 px-4 py-2 border rounded text-base disabled:bg-gray-200 disabled:cursor-not-allowed" 
+                     onchange="generateJudulInputs(this)" oninput="generateJudulInputs(this)" disabled>
+              <label class="text-sm text-gray-600 md:w-1/4">Jumlah Judul Berbeda</label>
+            </div>
+            <!-- Container untuk input judul buku -->
+            <div class="judul-buku-container space-y-2 hidden">
+              <div class="text-sm font-medium text-gray-700 mb-2">Detail Judul Buku:</div>
+              <div class="judul-inputs space-y-2"></div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-3">
+          <button type="button" onclick="tambahSubjek()" class="text-sm text-blue-600 hover:underline">+ Tambah Subjek</button>
+        </div>
+      </div>
+
+      <!-- Hidden Metode Pengiriman -->
+      <input type="hidden" name="metode_pengiriman" value="mandiri">
+
+      <!-- Catatan -->
+      <div class="mb-4">
+        <label class="block text-sm font-semibold text-gray-700">Catatan Tambahan</label>
+        <textarea name="notes" class="w-full px-4 py-3 border rounded-lg bg-gray-100" placeholder="(Opsional) Tulis catatan tambahan..."></textarea>
+      </div>
+
+      <!-- Persetujuan -->
+      <div class="mb-4">
+        <label class="inline-flex items-start">
+          <input type="checkbox" name="setuju_syarat" required class="form-checkbox mt-1 text-blue-600">
+          <span class="ml-2 text-sm text-gray-700 leading-snug">
+            Saya menyetujui <a href="{{ url_for('public.syarat') }}" class="text-blue-600 underline">Syarat & Ketentuan Donasi</a> *
+          </span>
+        </label>
+      </div>
+
+      <div class="mb-6">
+        <label class="inline-flex items-start">
+          <input type="checkbox" name="setuju_pengiriman" required class="form-checkbox mt-1 text-blue-600">
+          <span class="ml-2 text-sm text-gray-700 leading-snug">
+            Saya menyetujui melakukan <strong>Pengiriman Mandiri</strong> ke alamat yang ditentukan *
+          </span>
+        </label>
+      </div>
+
+      <!-- Tombol Submit -->
+      <div class="text-center">
+        <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg shadow hover:bg-green-700 text-lg font-semibold">
+          Selanjutnya
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+  let subjekIndex = 0;
+
+  function toggleJumlahJudul(selectElement) {
+    const subjekEntry = selectElement.closest('.subjek-entry');
+    const jumlahJudulInput = subjekEntry.querySelector('.input-jumlah-judul');
+    
+    if (selectElement.value) {
+      jumlahJudulInput.disabled = false;
+      jumlahJudulInput.focus();
+    } else {
+      jumlahJudulInput.disabled = true;
+      jumlahJudulInput.value = '';
+      // Also hide and clear the judul inputs
+      const container = subjekEntry.querySelector('.judul-buku-container');
+      const inputsContainer = subjekEntry.querySelector('.judul-inputs');
+      container.classList.add('hidden');
+      inputsContainer.innerHTML = '';
+    }
+  }
+
+  function generateJudulInputs(inputElement) {
+    const count = parseInt(inputElement.value) || 0;
+    const subjekEntry = inputElement.closest('.subjek-entry');
+    const container = subjekEntry.querySelector('.judul-buku-container');
+    const inputsContainer = subjekEntry.querySelector('.judul-inputs');
+    const subjekIdx = subjekEntry.dataset.subjekIndex;
+    
+    if (count > 0 && count <= 100) {
+      container.classList.remove('hidden');
+      
+      // Get current values
+      const currentInputs = inputsContainer.querySelectorAll('.judul-row');
+      const currentValues = [];
+      currentInputs.forEach(row => {
+        const judulInput = row.querySelector('input[name*="judul_buku"]');
+        const jumlahInput = row.querySelector('input[name*="jumlah_eksemplar"]');
+        if (judulInput && jumlahInput) {
+          currentValues.push({
+            judul: judulInput.value,
+            jumlah: jumlahInput.value
+          });
+        }
+      });
+      
+      // Generate new inputs
+      inputsContainer.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const row = document.createElement('div');
+        row.className = 'judul-row flex flex-col md:flex-row md:items-center gap-2 bg-white p-2 rounded border';
+        row.innerHTML = `
+          <div class="w-full md:w-3/5">
+            <input type="text" name="judul_buku_${subjekIdx}[]" placeholder="Judul Buku ${i + 1} (opsional)" 
+                   class="w-full px-3 py-2 border rounded text-sm" value="${currentValues[i]?.judul || ''}">
+          </div>
+          <input type="number" name="jumlah_eksemplar_${subjekIdx}[]" placeholder="Jumlah Eksemplar" required min="1" 
+                 class="w-full md:w-1/4 px-3 py-2 border rounded text-sm" value="${currentValues[i]?.jumlah || ''}">
+          <button type="button" onclick="hapusJudul(this)" class="text-red-500 hover:text-red-700 p-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        `;
+        inputsContainer.appendChild(row);
+      }
+    } else {
+      container.classList.add('hidden');
+      inputsContainer.innerHTML = '';
+    }
+  }
+
+  function hapusJudul(button) {
+    const row = button.closest('.judul-row');
+    const subjekEntry = button.closest('.subjek-entry');
+    const inputsContainer = subjekEntry.querySelector('.judul-inputs');
+    const jumlahJudulInput = subjekEntry.querySelector('.input-jumlah-judul');
+    
+    row.remove();
+    
+    // Update count
+    const remainingRows = inputsContainer.querySelectorAll('.judul-row').length;
+    jumlahJudulInput.value = remainingRows;
+    
+    // Hide container if empty
+    if (remainingRows === 0) {
+      subjekEntry.querySelector('.judul-buku-container').classList.add('hidden');
+    }
+    
+    // Re-number placeholders
+    inputsContainer.querySelectorAll('.judul-row').forEach((r, idx) => {
+      const judulInput = r.querySelector('input[name*="judul_buku"]');
+      judulInput.placeholder = `Judul Buku ${idx + 1}`;
+    });
+  }
+
+  function tambahSubjek() {
+    subjekIndex++;
+    const container = document.getElementById("subjek-container");
+    const div = document.createElement("div");
+    div.className = "subjek-entry bg-gray-50 p-4 rounded border";
+    div.dataset.subjekIndex = subjekIndex;
+    div.innerHTML = `
+      <div class="flex flex-col md:flex-row md:items-center gap-4 mb-3">
+        <select name="subjek_buku[]" required class="select-subjek w-full md:w-2/5 px-4 py-2 border rounded text-base">
+          <option value="">-- Pilih Subjek --</option>
+          {% for subjek in subjek_list %}
+          <option value="{{ subjek.id }}">{{ subjek.nama }}</option>
+          {% endfor %}
+        </select>
+        <input type="number" name="jumlah_judul[]" placeholder="Contoh: 5" required min="1" 
+               class="input-jumlah-judul w-full md:w-1/4 px-4 py-2 border rounded text-base disabled:bg-gray-200 disabled:cursor-not-allowed" 
+               onchange="generateJudulInputs(this)" oninput="generateJudulInputs(this)" disabled>
+        <label class="text-sm text-gray-600 md:w-1/5">Jumlah Judul Berbeda</label>
+        <button type="button" onclick="hapusSubjek(this)" class="text-red-500 hover:text-red-700 font-semibold text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+      <div class="judul-buku-container space-y-2 hidden">
+        <div class="text-sm font-medium text-gray-700 mb-2">Detail Judul Buku:</div>
+        <div class="judul-inputs space-y-2"></div>
+      </div>
+    `;
+    container.appendChild(div);
+    initTomSelect(div.querySelector('.select-subjek'));
+  }
+
+  function initTomSelect(selectElement) {
+    return new TomSelect(selectElement, {
+      onChange: function(value) {
+        toggleJumlahJudul(selectElement);
+      }
+    });
+  }
+
+  function hapusSubjek(button) {
+    button.closest('.subjek-entry').remove();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.select-subjek').forEach(el => initTomSelect(el));
+  });
+</script>
+{% endblock %}

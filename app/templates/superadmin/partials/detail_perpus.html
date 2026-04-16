@@ -1,0 +1,59 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+        <h4 class="font-semibold text-gray-800 mb-2">Informasi Perpustakaan</h4>
+        <div class="space-y-2 text-sm">
+            <div><strong>Nama:</strong> {{ perpus.nama }}</div>
+            <div><strong>Kecamatan:</strong> {{ perpus.kecamatan }}</div>
+            <div><strong>Desa:</strong> {{ perpus.desa }}</div>
+            <div><strong>Dibuat:</strong> {{ perpus.created_at.strftime('%d %B %Y, %H:%M') }}</div>
+            {% if perpus.updated_at != perpus.created_at %}
+            <div><strong>Diupdate:</strong> {{ perpus.updated_at.strftime('%d %B %Y, %H:%M') }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div>
+        <h4 class="font-semibold text-gray-800 mb-2">Informasi Admin</h4>
+        {% if admin %}
+        <div class="space-y-2 text-sm">
+            <div><strong>Username:</strong> {{ admin.username }}</div>
+            <div><strong>Nama Lengkap:</strong> {{ admin.full_name }}</div>
+            <div><strong>Email:</strong> {{ admin.email }}</div>
+            <div><strong>Status:</strong> 
+                {% if admin.is_verified %}
+                    <span class="text-green-600">Terverifikasi</span>
+                {% else %}
+                    <span class="text-red-600">Belum Diverifikasi</span>
+                {% endif %}
+            </div>
+            <div><strong>Aktif:</strong> 
+                {% if admin.is_active %}
+                    <span class="text-green-600">Ya</span>
+                {% else %}
+                    <span class="text-red-600">Tidak</span>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-sm">Belum ada admin yang terdaftar</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if detail_perpus %}
+<div class="mt-6">
+    <h4 class="font-semibold text-gray-800 mb-2">Detail Perpustakaan</h4>
+    <div class="space-y-2 text-sm">
+        <div><strong>Penanggung Jawab:</strong> {{ detail_perpus.penanggung_jawab }}</div>
+        {% if detail_perpus.deskripsi %}
+        <div><strong>Deskripsi:</strong> {{ detail_perpus.deskripsi }}</div>
+        {% endif %}
+        {% if detail_perpus.jumlah_koleksi %}
+        <div><strong>Jumlah Koleksi:</strong> {{ detail_perpus.jumlah_koleksi }} buku</div>
+        {% endif %}
+        {% if detail_perpus.jam_operasional_mulai and detail_perpus.jam_operasional_selesai %}
+        <div><strong>Jam Operasional:</strong> {{ detail_perpus.jam_operasional_mulai.strftime('%H:%M') }} - {{ detail_perpus.jam_operasional_selesai.strftime('%H:%M') }}</div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

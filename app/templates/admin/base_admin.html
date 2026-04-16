@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %} - Perpus Desa</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo2.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/logo2.png') }}">
+    
+    <!-- CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    {% block extra_head %}{% endblock %}
+    <style>
+        /* Custom styles for mobile sidebar */
+        .sidebar-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .sidebar-mobile {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-mobile.open {
+            transform: translateX(0);
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Toast Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+<!-- Mobile Header -->
+<div class="md:hidden bg-blue-600 text-white px-4 py-3 flex justify-between items-center sticky top-0 z-40">
+    <div class="flex items-center space-x-3">
+        <button id="mobile-menu-toggle" class="text-white hover:text-gray-200 focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        <h1 class="text-lg font-bold">Admin Panel</h1>
+    </div>
+    <div class="flex items-center space-x-2">
+        {% if session.get('nama') %}
+        <span class="text-sm">{{ session.get('nama', '').replace('_', ' ').title() }}</span>
+        {% endif %}
+        <a href="{{ url_for('admin.logout') }}" class="text-white hover:text-red-300">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Sidebar Overlay for Mobile -->
+<div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden sidebar-overlay"></div>
+
+<!-- Main Container -->
+<div class="flex h-screen md:h-auto">
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed md:relative inset-y-0 left-0 z-40 w-64 bg-blue-600 text-white flex flex-col shadow-lg sidebar-mobile md:transform-none md:translate-x-0">
+        {% include 'admin/sidebar.html' %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col main-content md:ml-0">
+        <!-- Page Content -->
+        <main class="flex-1 p-4 md:p-6 overflow-y-auto">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<!-- Toast Notification Script -->
+<script>
+// Initialize Lucide icons
+lucide.createIcons();
+
+// Mobile menu toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    function openSidebar() {
+        sidebar.classList.add('open');
+        sidebarOverlay.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    // Toggle sidebar on mobile menu button click
+    mobileMenuToggle?.addEventListener('click', function() {
+        if (sidebar.classList.contains('open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+
+    // Close sidebar when clicking overlay
+    sidebarOverlay?.addEventListener('click', closeSidebar);
+
+    // Close sidebar when window is resized to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 768) {
+            closeSidebar();
+        }
+    });
+
+    // Close sidebar when clicking on sidebar links (mobile only)
+    const sidebarLinks = sidebar.querySelectorAll('a[href]');
+    sidebarLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth < 768) {
+                closeSidebar();
+            }
+        });
+    });
+});
+
+// Toast Notification System
+function showToast(message, type = 'info', duration = 4000) {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    
+    const typeClasses = {
+        'success': 'bg-green-500 text-white',
+        'error': 'bg-red-500 text-white',
+        'warning': 'bg-yellow-500 text-white',
+        'info': 'bg-blue-500 text-white'
+    };
+    
+    toast.className = `${typeClasses[type]} px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 max-w-sm`;
+    toast.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-sm font-medium">${message}</span>
+            <button onclick="closeToast(this)" class="ml-4 text-white hover:text-gray-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+    }, 100);
+    
+    setTimeout(() => {
+        closeToast(toast.querySelector('button'));
+    }, duration);
+}
+
+function closeToast(button) {
+    const toast = button.closest('div').parentElement;
+    toast.classList.add('translate-x-full', 'opacity-0');
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.parentElement.removeChild(toast);
+        }
+    }, 300);
+}
+
+// Show flash messages as toasts
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            showToast('{{ message }}', '{{ category }}');
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

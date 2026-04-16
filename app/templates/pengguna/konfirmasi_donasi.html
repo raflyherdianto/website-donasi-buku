@@ -1,0 +1,161 @@
+{% extends "pengguna/base_public.html" %}
+
+{% block title %}Konfirmasi Donasi Buku{% endblock %}
+
+{% block extra_head %}
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+  }
+  textarea:focus {
+    outline: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ISI UTAMA -->
+<div class="container mx-auto px-4 py-10">
+  <div class="w-full max-w-5xl mx-auto bg-white p-10 shadow-xl rounded-xl">
+
+    <!-- Judul -->
+    <h2 class="text-3xl font-bold text-center text-blue-700 mb-4">Konfirmasi Donasi Buku</h2>
+    <p class="text-sm text-gray-700 text-center mb-6">
+      Lengkapi informasi berikut untuk mengonfirmasi pengiriman buku donasi Anda.
+    </p>
+
+    <!-- Informasi Penting -->
+    <div class="bg-gray-50 border border-gray-300 p-4 rounded mb-6 text-sm text-gray-700">
+      <p class="font-semibold mb-2">Informasi Penting:</p>
+      <ul class="list-disc ml-5 space-y-1">
+        <li>Buku dikirim secara mandiri ke alamat resmi Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang.</li>
+        <li>Unggah bukti pengiriman maksimal <strong>2 x 24 jam</strong> setelah mengisi formulir donasi.</li>
+        <li>Sertifikat akan dikirim ke email setelah donasi diterima dan diverifikasi oleh tim Dinas.</li>
+      </ul>
+    </div>
+
+    <!-- Alamat Pengiriman -->
+    <div class="mb-6">
+      <label class="block font-semibold text-sm text-gray-800 mb-2">Alamat Pengiriman :</label>
+      <div class="relative bg-gray-100 rounded-md p-4 text-sm text-gray-800 border border-gray-300">
+        <textarea id="alamat" readonly class="w-full bg-transparent resize-none leading-relaxed">Jl. Hayam Wuruk No.1, Kepuharjo, Kec. Lumajang, Kabupaten Lumajang, Jawa Timur 67316</textarea>
+        <button onclick="salinAlamat()" class="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-xs underline">Salin</button>
+      </div>
+    </div>
+
+    <!-- Form Konfirmasi -->
+    <form action="{{ url_for('public.konfirmasi_donasi', invoice=donasi.invoice) }}" method="POST" enctype="multipart/form-data">
+      <!-- Unggah Bukti Resi Pengiriman -->
+      <div class="mb-4">
+        <label class="block font-semibold text-sm text-gray-800 mb-1">
+          Unggah Bukti Resi Pengiriman <span class="text-red-600">*</span>
+        </label>
+        <p class="text-xs text-gray-600 mb-2">Format file yang diizinkan: JPG, JPEG, PNG</p>
+        <input id="bukti_resi_input" type="file" name="bukti_resi" accept=".jpg,.jpeg,.png" required class="w-full px-4 py-2 border rounded bg-white shadow-sm">
+        <div class="mt-4 flex justify-center">
+          <img
+            id="preview-img"
+            class="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg object-contain rounded shadow-lg"
+            style="display: none"
+            alt="Preview Bukti Resi"
+          >
+        </div>
+      </div>
+
+      <!-- Unggah Sampul Buku -->
+      <div class="mb-4">
+        <label class="block font-semibold text-sm text-gray-800 mb-1">
+          Unggah Sampul Buku <span class="text-red-600">*</span>
+        </label>
+        <p class="text-xs text-gray-600 mb-2">Format file yang diizinkan: JPG, JPEG, PNG</p>
+        <input id="sampul_buku_input" type="file" name="sampul_buku" accept=".jpg,.jpeg,.png" required class="w-full px-4 py-2 border rounded bg-white shadow-sm">
+        <div class="mt-4 flex justify-center">
+          <img
+            id="preview-sampul"
+            class="w-full max-w-xs object-contain rounded shadow-lg"
+            style="display: none"
+            alt="Preview Sampul Buku"
+          >
+        </div>
+      </div>
+
+      <!-- Tanggal Pengiriman -->
+      <div class="mb-6">
+        <label class="block font-semibold text-sm text-gray-800 mb-1">
+          Tanggal Pengiriman <span class="text-red-600">*</span>
+        </label>
+        <input type="date" name="tanggal_pengiriman" required class="w-full px-4 py-2 border rounded bg-white shadow-sm">
+      </div>
+
+      <!-- Tombol Submit -->
+      <div class="flex justify-between">
+        <button id="cancel-btn" type="button" class="bg-red-500 text-white px-8 py-3 rounded shadow hover:bg-red-600 font-semibold">
+          Batalkan
+        </button>
+        <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded shadow hover:bg-green-700">
+          Kirim Sekarang
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function salinAlamat() {
+    const alamat = document.getElementById("alamat");
+    alamat.select();
+    alamat.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    showToast("Alamat berhasil disalin!", "success");
+  }
+
+  // Batalkan modal
+  const cancelBtn = document.getElementById('cancel-btn');
+  const modal = document.createElement('div');
+  modal.innerHTML = `
+    <div id="cancel-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm">
+        <h3 class="text-lg font-bold mb-4">Apakah yakin ingin membatalkan donasi?</h3>
+        <div class="flex justify-end space-x-4">
+          <button id="cancel-no" class="px-4 py-2 rounded bg-gray-300">Tidak</button>
+          <button id="cancel-yes" class="px-4 py-2 rounded bg-red-500 text-white">Ya</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.style.display = 'none';
+
+  cancelBtn.addEventListener('click', () => modal.style.display = 'flex');
+  document.getElementById('cancel-no').addEventListener('click', () => modal.style.display = 'none');
+  document.getElementById('cancel-yes').addEventListener('click', () => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = "{{ url_for('public.batal_donasi', invoice=donasi.invoice) }}";
+    document.body.appendChild(form);
+    form.submit();
+  });
+
+  // Preview Bukti Resi
+  document.getElementById('bukti_resi_input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const preview = document.getElementById('preview-img');
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = 'block';
+    }
+  });
+
+  // Preview Sampul Buku
+  document.getElementById('sampul_buku_input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const preview = document.getElementById('preview-sampul');
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = 'block';
+    }
+  });
+</script>
+{% endblock %}

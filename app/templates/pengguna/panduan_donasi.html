@@ -1,0 +1,64 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container, card, grid_container, page_header %}
+
+{% block title %}Panduan Donasi - PerpusDes Lumajang{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+{{ page_header("PANDUAN DONASI", "Perpustakaan Desa Kabupaten Lumajang", "bg-gray-200") }}
+
+{% call content_container("7xl", "px-4 sm:px-6 py-10") %}
+    {% call grid_container("grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", "gap-6 sm:gap-8") %}
+        
+        <!-- Langkah 1 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-500 hover:shadow-lg transition-all") %}
+            <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3">1. Masuk ke Website</h3>
+            <p class="text-sm sm:text-base text-gray-700">Buka laman resmi website donasi buku untuk Perpustakaan Desa Lumajang melalui perangkat Anda.</p>
+        {% endcall %}
+
+        <!-- Langkah 2 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-500 hover:shadow-lg transition-all") %}
+            <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3">2. Pilih Menu "Donasi Buku"</h3>
+            <p class="text-sm sm:text-base text-gray-700">Klik tombol <strong>DONASI</strong> dari menu utama untuk masuk ke halaman donasi.</p>
+        {% endcall %}
+
+        <!-- Langkah 3 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-500 hover:shadow-lg transition-all") %}
+            <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3">3. Buat Akun</h3>
+            <p class="text-sm sm:text-base text-gray-700">Lakukan pendaftaran akun atau login menggunakan metode yang tersedia seperti Email/Google.</p>
+        {% endcall %}
+
+        <!-- Langkah 4 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-500 hover:shadow-lg transition-all") %}
+            <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3">4. DONASI SEKARANG</h3>
+            <p class="text-sm sm:text-base text-gray-700">Setelah login, klik menu DONASI SEKARANG untuk mengisi formulir dan mengunggah bukti pengiriman.</p>
+        {% endcall %}
+
+        <!-- Langkah 5 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-500 hover:shadow-lg transition-all") %}
+            <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3">5. Formulir Donasi</h3>
+            <p class="text-sm sm:text-base text-gray-700">Lengkapi formulir donasi dan pastikan data buku dan pengiriman sudah sesuai.</p>
+        {% endcall %}
+
+        <!-- Langkah 6 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-500 hover:shadow-lg transition-all") %}
+            <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3">6. Donasi Sukses</h3>
+            <p class="text-sm sm:text-base text-gray-700">Setelah konfirmasi berhasil, Anda akan mendapatkan bukti donasi resmi berupa dokumen PDF.</p>
+        {% endcall %}
+
+        <!-- Langkah 7 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-500 hover:shadow-lg transition-all") %}
+            <h3 class="text-lg sm:text-xl font-bold text-blue-700 mb-3">7. Menunggu Verifikasi</h3>
+            <p class="text-sm sm:text-base text-gray-700">Tunggu verifikasi dari tim kami. Sertifikat donasi akan dikirim ke email Anda.</p>
+        {% endcall %}
+
+    {% endcall %}
+
+    <!-- Tombol Kembali -->
+    <div class="text-center mt-10 sm:mt-12">
+        <a href="{{ url_for('public.home') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium shadow transition duration-200 text-sm sm:text-base">
+            ← Kembali ke Beranda
+        </a>
+    </div>
+{% endcall %}
+{% endblock %}

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Super Admin</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo2.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/logo2.png') }}">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right bottom, #2c77da, #2c77da);
+        }
+        
+        @media (max-width: 640px) {
+            .login-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 to-indigo-900 min-h-screen flex items-center justify-center p-4 sm:p-6">
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    
+    <div class="bg-white shadow-2xl rounded-xl w-full max-w-sm sm:max-w-md p-6 sm:p-8 transition-all duration-300 ease-in-out transform hover:scale-[1.01] login-container">
+
+        <!-- Logo & Judul -->
+        <div class="text-center mb-6">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Dinas Lumajang" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Login Super Admin</h2>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1 px-2">Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang</p>
+            {% if SessionManager.is_logged_in('superadmin') %}
+            <p class="text-xs text-blue-600 mt-2 px-2">Sudah login sebagai: {{ SessionManager.get_specific_user_data('full_name', 'superadmin') }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Form Login -->
+        <form action="{{ url_for('superadmin.login') }}" method="POST" class="space-y-4">
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="username" name="username" required
+                    class="mt-1 w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm" />
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" required
+                    class="mt-1 w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm" />
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-sm sm:text-base">
+                <i class="fas fa-sign-in-alt mr-2"></i>
+                Masuk
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <p class="text-xs text-gray-400 mt-6 text-center px-2">
+            © <span id="current-year"></span> Donasi Buku Lumajang — Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang
+        </p>
+    </div>
+
+<script>
+  document.getElementById('current-year').textContent = new Date().getFullYear();
+
+  // Toast Notification System
+  function showToast(message, type = 'info', duration = 4000) {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    
+    const typeClasses = {
+      'success': 'bg-green-500 text-white',
+      'error': 'bg-red-500 text-white',
+      'warning': 'bg-yellow-500 text-white',
+      'info': 'bg-blue-500 text-white'
+    };
+    
+    toast.className = `${typeClasses[type]} px-4 sm:px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 max-w-xs sm:max-w-sm text-sm`;
+    toast.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="font-medium">${message}</span>
+        <button onclick="closeToast(this)" class="ml-4 text-white hover:text-gray-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.classList.remove('translate-x-full', 'opacity-0');
+    }, 100);
+    
+    setTimeout(() => {
+      closeToast(toast.querySelector('button'));
+    }, duration);
+  }
+  
+  function closeToast(button) {
+    const toast = button.closest('div').parentElement;
+    toast.classList.add('translate-x-full', 'opacity-0');
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.parentElement.removeChild(toast);
+      }
+    }, 300);
+  }
+
+  // Show flash messages as toasts
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        showToast('{{ message }}', '{{ category }}');
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Super Admin{% endblock %} - Perpus Pusat</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo2.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/logo2.png') }}">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.tailwindcss.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    
+    <!-- jQuery (required for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/dataTables.tailwindcss.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    
+    <style>
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        /* Mobile first approach */
+        .main-layout {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Mobile: sidebar should be overlay */
+        @media (max-width: 768px) {
+            .sidebar-mobile {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: 50;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar-mobile.sidebar-show {
+                transform: translateX(0);
+            }
+            
+            .content-mobile {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+        
+        /* Desktop: sidebar should be fixed with content margin */
+        @media (min-width: 769px) {
+            .main-layout {
+                flex-direction: row;
+            }
+            
+            .sidebar-desktop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: 40;
+                transform: translateX(0);
+            }
+            
+            .content-desktop {
+                margin-left: 16rem; /* 256px = w-64 */
+                width: calc(100% - 16rem);
+            }
+        }
+        
+        /* DataTables custom styling */
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            @apply border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+        }
+        
+        .dataTables_wrapper .dataTables_length label {
+            @apply text-sm font-medium text-gray-700;
+        }
+        
+        .dataTables_wrapper .dataTables_filter label {
+            @apply text-sm font-medium text-gray-700;
+        }
+        
+        .dataTables_wrapper .dataTables_info {
+            @apply text-sm text-gray-600;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate {
+            @apply flex items-center justify-center space-x-1;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            @apply px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center min-w-[2.5rem];
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            @apply bg-blue-500 text-white border-blue-500 hover:bg-blue-600;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+            @apply opacity-50 cursor-not-allowed hover:bg-transparent;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.previous,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.next {
+            @apply font-medium;
+        }
+        
+        /* Mobile responsive table */
+        @media (max-width: 768px) {
+            .dataTables_wrapper {
+                @apply overflow-x-auto;
+            }
+            
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_filter {
+                @apply mb-3;
+            }
+            
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                @apply text-xs;
+            }
+            
+            .dataTables_wrapper table {
+                @apply min-w-[800px];
+            }
+        }
+        
+        /* Action buttons styling */
+        .action-btn {
+            @apply inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 shadow-sm hover:shadow-md;
+        }
+        
+        .action-btn-detail {
+            @apply bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300;
+        }
+        
+        .action-btn-edit {
+            @apply bg-yellow-50 text-yellow-700 border border-yellow-200 hover:bg-yellow-100 hover:border-yellow-300;
+        }
+        
+        .action-btn-delete {
+            @apply bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 hover:border-red-300;
+        }
+        
+        /* Custom scrollbar for mobile */
+        .dataTables_wrapper::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .dataTables_wrapper::-webkit-scrollbar-track {
+            @apply bg-gray-100 rounded-full;
+        }
+        
+        .dataTables_wrapper::-webkit-scrollbar-thumb {
+            @apply bg-gray-400 rounded-full hover:bg-gray-500;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleSidebar()"></div>
+
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-gray-800 text-white flex flex-col sidebar-transition sidebar-mobile md:sidebar-desktop">
+            <!-- Sidebar Header -->
+            <div class="px-6 py-4 border-b border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div class="text-center flex-1">
+                        <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo Lumajang" class="w-14 h-16 mx-auto mb-2">
+                        <h2 class="text-xl font-bold">Super Admin</h2>
+                    </div>
+                    <!-- Mobile Close Button -->
+                    <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar Navigation -->
+            <nav class="flex-1 p-4 space-y-2 text-sm overflow-y-auto">
+                <!-- Dashboard -->
+                <a href="{{ url_for('superadmin.dashboard') }}" 
+                   class="flex items-center px-4 py-2 rounded hover:bg-gray-700 {% if request.endpoint == 'superadmin.dashboard' %}bg-blue-700{% endif %}">
+                    <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <!-- Manajemen Perpustakaan -->
+                <div class="space-y-1">
+                    <button onclick="toggleSubmenu('menu-perpus')" 
+                            class="w-full text-left flex justify-between items-center px-4 py-2 rounded hover:bg-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-building w-5 mr-3"></i>
+                            <span>Manajemen Perpustakaan</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-200" id="chevron-perpus"></i>
+                    </button>
+                    <div id="menu-perpus" class="ml-4 mt-1 space-y-1 hidden">
+                        <a href="{{ url_for('superadmin.daftar_perpustakaan') }}" 
+                           class="block px-4 py-2 rounded hover:bg-gray-600 {% if request.endpoint == 'superadmin.daftar_perpustakaan' %}bg-gray-600{% endif %}">
+                            <i class="fas fa-list w-4 mr-2"></i>Daftar Perpustakaan
+                        </a>
+                        <a href="{{ url_for('superadmin.verifikasi_admin') }}" 
+                           class="block px-4 py-2 rounded hover:bg-gray-600 {% if request.endpoint == 'superadmin.verifikasi_admin' %}bg-gray-600{% endif %}">
+                            <i class="fas fa-user-check w-4 mr-2"></i>Verifikasi Admin
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Manajemen Donatur -->
+                <div class="space-y-1">
+                    <button onclick="toggleSubmenu('menu-donatur')" 
+                            class="w-full text-left flex justify-between items-center px-4 py-2 rounded hover:bg-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-users w-5 mr-3"></i>
+                            <span>Manajemen Donatur</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-200" id="chevron-donatur"></i>
+                    </button>
+                    <div id="menu-donatur" class="ml-4 mt-1 space-y-1 hidden">
+                        <a href="{{ url_for('superadmin.daftar_donatur') }}" 
+                           class="block px-4 py-2 rounded hover:bg-gray-600 {% if request.endpoint == 'superadmin.daftar_donatur' %}bg-gray-600{% endif %}">
+                            <i class="fas fa-address-book w-4 mr-2"></i>Daftar Donatur
+                        </a>
+                        <a href="{{ url_for('superadmin.list_donasi') }}" 
+                           class="block px-4 py-2 rounded hover:bg-gray-600 {% if request.endpoint == 'superadmin.list_donasi' %}bg-gray-600{% endif %}">
+                            <i class="fas fa-history w-4 mr-2"></i>Riwayat Donasi
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Distribusi -->
+                <div class="space-y-1">
+                    <button onclick="toggleSubmenu('menu-distribusi')" 
+                            class="w-full text-left flex justify-between items-center px-4 py-2 rounded hover:bg-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-truck w-5 mr-3"></i>
+                            <span>Pengajuan & Distribusi</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-200" id="chevron-distribusi"></i>
+                    </button>
+                    <div id="menu-distribusi" class="ml-4 mt-1 space-y-1 hidden">
+                        <a href="{{ url_for('superadmin.pengajuan_perpusdes') }}" 
+                           class="block px-4 py-2 rounded hover:bg-gray-600 {% if request.endpoint == 'superadmin.pengajuan_perpusdes' %}bg-gray-600{% endif %}">
+                            <i class="fas fa-file-alt w-4 mr-2"></i>Pengajuan Perpusdes
+                        </a>
+                    </div>
+                    <div id="menu-distribusi" class="ml-4 mt-1 space-y-1 hidden">
+                        <a href="{{ url_for('superadmin.riwayat_distribusi') }}" 
+                           class="block px-4 py-2 rounded hover:bg-gray-600 {% if request.endpoint == 'superadmin.riwayat_distribusi' %}bg-gray-600{% endif %}">
+                            <i class="fas fa-shipping-fast w-4 mr-2"></i>Riwayat Distribusi
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Kategori Buku -->
+                <div class="space-y-1">
+                    <button onclick="toggleSubmenu('menu-kategori')" 
+                            class="w-full text-left flex justify-between items-center px-4 py-2 rounded hover:bg-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-tags w-5 mr-3"></i>
+                            <span>Kategori Buku</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform duration-200" id="chevron-kategori"></i>
+                    </button>
+                    <div id="menu-kategori" class="ml-4 mt-1 space-y-1 hidden">
+                        <a href="{{ url_for('superadmin.kelola_subjek') }}" 
+                           class="block px-4 py-2 rounded hover:bg-gray-600 {% if request.endpoint == 'superadmin.kelola_subjek' %}bg-gray-600{% endif %}">
+                            <i class="fas fa-cogs w-4 mr-2"></i>Kelola Subjek
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Statistik -->
+                <a href="{{ url_for('superadmin.statistik') }}" 
+                   class="flex items-center px-4 py-2 rounded hover:bg-gray-700 {% if request.endpoint == 'superadmin.statistik' %}bg-gray-600{% endif %}">
+                    <i class="fas fa-chart-bar w-5 mr-3"></i>
+                    <span>Statistik</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div id="main-content" class="flex-1 flex flex-col min-h-screen content-mobile md:content-desktop">
+            <!-- Top Navigation -->
+            <nav class="bg-white shadow-md px-4 md:px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleSidebar()" class="md:hidden mr-4 text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="text-xl md:text-2xl font-bold text-gray-800">Donasi Buku Lumajang</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="hidden sm:inline text-sm md:text-base text-gray-700">
+                        {{ SessionManager.get_specific_user_data('full_name', 'superadmin')|default('Admin') }}
+                    </span>
+                    <a href="{{ url_for('superadmin.logout') }}" 
+                       class="bg-red-500 hover:bg-red-600 text-white px-3 md:px-4 py-2 rounded transition text-sm md:text-base">
+                        <i class="fas fa-sign-out-alt mr-1 md:mr-2"></i>
+                        <span class="hidden sm:inline">Logout</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-4 md:p-8 bg-gray-100">
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t border-gray-200 px-4 md:px-8 py-4">
+                <div class="text-center text-gray-500 text-xs md:text-sm">
+                    © <span id="current-year"></span> Donasi Buku Lumajang — Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Set current year dynamically
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Toggle Sidebar for Mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (window.innerWidth < 769) {
+                sidebar.classList.toggle('sidebar-show');
+                overlay.classList.toggle('hidden');
+            }
+        }
+
+        // Toggle Submenu
+        function toggleSubmenu(menuId) {
+            const menu = document.getElementById(menuId);
+            const chevron = document.getElementById('chevron-' + menuId.split('-')[1]);
+            
+            menu.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            if (window.innerWidth >= 769) {
+                // Desktop: ensure sidebar is visible and overlay is hidden
+                sidebar.classList.remove('sidebar-show');
+                overlay.classList.add('hidden');
+            } else {
+                // Mobile: ensure sidebar is hidden by default
+                sidebar.classList.remove('sidebar-show');
+                overlay.classList.add('hidden');
+            }
+        });
+
+        // Auto-expand active menu on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const activeLinks = document.querySelectorAll('a[class*="bg-gray-600"]');
+            activeLinks.forEach(link => {
+                const parentSubmenu = link.closest('div[id^="menu-"]');
+                if (parentSubmenu) {
+                    parentSubmenu.classList.remove('hidden');
+                    const menuType = parentSubmenu.id.split('-')[1];
+                    const chevron = document.getElementById('chevron-' + menuType);
+                    if (chevron) {
+                        chevron.classList.add('rotate-180');
+                    }
+                }
+            });
+        });
+
+        // Toast Notification System
+        function showToast(message, type = 'info', duration = 4000) {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const typeClasses = {
+                'success': 'bg-green-500 text-white',
+                'error': 'bg-red-500 text-white',
+                'warning': 'bg-yellow-500 text-white',
+                'info': 'bg-blue-500 text-white'
+            };
+            
+            toast.className = `${typeClasses[type]} px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 max-w-sm`;
+            toast.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">${message}</span>
+                    <button onclick="closeToast(this)" class="ml-4 text-white hover:text-gray-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 100);
+            
+            setTimeout(() => {
+                closeToast(toast.querySelector('button'));
+            }, duration);
+        }
+        
+        function closeToast(button) {
+            const toast = button.closest('div').parentElement;
+            toast.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.parentElement.removeChild(toast);
+                }
+            }, 300);
+        }
+
+        // Show flash messages as toasts
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    showToast('{{ message }}', '{{ category }}');
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

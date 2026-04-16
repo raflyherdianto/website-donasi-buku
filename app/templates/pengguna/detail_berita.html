@@ -1,0 +1,472 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container, grid_container %}
+
+{% block title %}{{ news.title }} - Donasi Buku Perpustakaan Desa{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Custom Image Popup Modal */
+    .image-popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .image-popup-overlay.show {
+        display: flex;
+        opacity: 1;
+    }
+
+    .image-popup-container {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+    }
+
+    .image-popup-overlay.show .image-popup-container {
+        transform: scale(1);
+    }
+
+    .popup-image {
+        width: 100%;
+        height: auto;
+        max-height: 80vh;
+        object-fit: contain;
+        display: block;
+    }
+
+    .popup-close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s ease;
+    }
+
+    .popup-close-btn:hover {
+        background: rgba(0, 0, 0, 0.9);
+    }
+
+    .popup-caption {
+        padding: 15px 20px;
+        background: white;
+        color: #374151;
+        font-weight: 500;
+        text-align: center;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* News Content Styling */
+    .news-content {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.8;
+        color: #374151;
+    }
+
+    .news-content h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
+        margin-top: 2rem;
+        line-height: 1.3;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+    }
+
+    .news-content h1:first-child {
+        margin-top: 0;
+    }
+
+    .news-content h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1.25rem;
+        margin-top: 1.75rem;
+        line-height: 1.3;
+    }
+
+    .news-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 1rem;
+        margin-top: 1.5rem;
+        line-height: 1.4;
+    }
+
+    .news-content h4 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.75rem;
+        margin-top: 1.25rem;
+        line-height: 1.4;
+    }
+
+    .news-content p {
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        line-height: 1.8;
+        color: #4b5563;
+    }
+
+    .news-content ul, .news-content ol {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+        color: #4b5563;
+    }
+
+    .news-content ul {
+        list-style-type: disc;
+    }
+
+    .news-content ol {
+        list-style-type: decimal;
+    }
+
+    .news-content li {
+        margin-bottom: 0.5rem;
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+
+    .news-content ul ul, .news-content ol ol {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+        padding-left: 1.25rem;
+    }
+
+    .news-content blockquote {
+        border-left: 4px solid #3b82f6;
+        padding-left: 1.5rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        color: #6b7280;
+        background-color: #f8fafc;
+        padding: 1rem 1.5rem;
+        border-radius: 0 0.375rem 0.375rem 0;
+    }
+
+    .news-content strong, .news-content b {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .news-content em, .news-content i {
+        font-style: italic;
+    }
+
+    .news-content a {
+        color: #3b82f6;
+        text-decoration: underline;
+        transition: color 0.2s ease;
+    }
+
+    .news-content a:hover {
+        color: #1d4ed8;
+    }
+
+    /* Fixed BR styling - minimal spacing */
+    .news-content br {
+        display: block;
+        margin: 0.25rem 0;
+        line-height: 0;
+    }
+
+    /* Remove extra spacing from BR when between block elements */
+    .news-content h1 + br,
+    .news-content h2 + br,
+    .news-content h3 + br,
+    .news-content h4 + br,
+    .news-content h5 + br,
+    .news-content h6 + br,
+    .news-content p + br,
+    .news-content ul + br,
+    .news-content ol + br,
+    .news-content blockquote + br {
+        display: none;
+    }
+
+    /* Hide consecutive BRs beyond the first one */
+    .news-content br + br {
+        display: none;
+    }
+
+    /* BR before block elements should be minimal */
+    .news-content br + h1,
+    .news-content br + h2,
+    .news-content br + h3,
+    .news-content br + h4,
+    .news-content br + h5,
+    .news-content br + h6,
+    .news-content br + p,
+    .news-content br + ul,
+    .news-content br + ol {
+        margin-top: 0.5rem;
+    }
+
+    .news-content hr {
+        border: none;
+        border-top: 1px solid #e5e7eb;
+        margin: 2rem 0;
+    }
+
+    .news-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+
+    .news-content th, .news-content td {
+        border: 1px solid #e5e7eb;
+        padding: 0.75rem;
+        text-align: left;
+    }
+
+    .news-content th {
+        background-color: #f9fafb;
+        font-weight: 600;
+    }
+
+    .news-content code {
+        background-color: #f3f4f6;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+    }
+
+    .news-content pre {
+        background-color: #1f2937;
+        color: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin: 1.5rem 0;
+    }
+
+    .news-content pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .news-content h1 {
+            font-size: 1.5rem;
+        }
+        
+        .news-content h2 {
+            font-size: 1.25rem;
+        }
+        
+        .news-content h3 {
+            font-size: 1.125rem;
+        }
+        
+        .news-content ul, .news-content ol {
+            padding-left: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Custom Image Popup Modal -->
+<div id="imagePopup" class="image-popup-overlay" onclick="closeImagePopup(event)">
+  <div class="image-popup-container" onclick="event.stopPropagation()">
+    <button class="popup-close-btn" onclick="closeImagePopup()" title="Tutup">
+      <i class="fas fa-times"></i>
+    </button>
+    <img id="popupImage" class="popup-image" src="" alt="">
+    <div id="popupCaption" class="popup-caption"></div>
+  </div>
+</div>
+
+{% call content_container("7xl", "px-4 sm:px-6 py-8") %}
+  
+  <!-- Back Button -->
+  <a href="{{ url_for('public.semua_berita') }}" class="back-button inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 font-medium">
+    <i class="fa-solid fa-arrow-left mr-2"></i>
+    Kembali ke Semua Berita
+  </a>
+
+  <!-- News Detail Container -->
+  <article class="news-detail-container bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8">
+    
+    <!-- News Header -->
+    <header class="mb-6 sm:mb-8">
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-6 leading-tight">{{ news.title }}</h1>
+      
+      <!-- News Meta with Better Styling -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 text-gray-600 mb-6 p-4 bg-gray-50 rounded-lg border">
+        
+        <!-- Author -->
+        <div class="flex items-center">
+          <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+            <i class="fa-solid fa-user text-blue-600 text-lg"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Penulis</p>
+            <p class="text-sm font-semibold text-gray-800 truncate">{{ news.author }}</p>
+          </div>
+        </div>
+        
+        <!-- Date -->
+        <div class="flex items-center">
+          <div class="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+            <i class="fa-solid fa-calendar text-green-600 text-lg"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Tanggal</p>
+            <p class="text-sm font-semibold text-gray-800">{{ news.date }}</p>
+          </div>
+        </div>
+        
+        <!-- Location (if available) -->
+        {% if news.location %}
+        <div class="flex items-center">
+          <div class="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+            <i class="fa-solid fa-map-marker-alt text-red-600 text-lg"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">Lokasi</p>
+            <a href="{{ news.location }}" target="_blank" class="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 flex items-center">
+              <span class="truncate">Lihat Lokasi</span>
+              <i class="fa-solid fa-external-link-alt ml-1 text-xs flex-shrink-0"></i>
+            </a>
+          </div>
+        </div>
+        {% endif %}
+        
+      </div>
+    </header>
+
+    <!-- Featured Image -->
+    <div class="mb-6 sm:mb-8">
+      <div class="overflow-hidden rounded-lg shadow-md">
+        <img src="{{ url_for('static', filename=news.image) }}" alt="{{ news.title }}" class="w-full h-64 sm:h-80 lg:h-96 object-cover cursor-pointer transition-transform duration-300 hover:scale-105" onclick="openImagePopup('{{ url_for('static', filename=news.image) }}', '{{ news.title }}')">
+      </div>
+    </div>
+
+    <!-- News Content -->
+    <div class="news-content max-w-none">
+      {{ news.content|safe }}
+    </div>
+
+    <!-- Share Buttons -->
+    <div class="mt-8 sm:mt-12 pt-6 border-t border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Bagikan Berita Ini</h3>
+      <div class="flex space-x-4">
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}" target="_blank" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200 text-sm">
+          <i class="fab fa-facebook-f mr-2"></i>Facebook
+        </a>
+        <a href="https://twitter.com/intent/tweet?url={{ request.url }}&text={{ news.title }}" target="_blank" class="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600 transition duration-200 text-sm">
+          <i class="fab fa-twitter mr-2"></i>Twitter
+        </a>
+        <a href="https://wa.me/?text={{ news.title }} {{ request.url }}" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-200 text-sm">
+          <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+        </a>
+      </div>
+    </div>
+  </article>
+
+  <!-- Related News Section -->
+  {% if related_news %}
+  <section class="mt-12">
+    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8">Berita Terkait</h2>
+    {% call grid_container("grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", "gap-6") %}
+      
+      {% for related in related_news %}
+      <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer" onclick="window.location.href='{{ url_for('public.detail_berita', perpus_slug=related.perpus_slug, slug=related.slug) }}'">
+        <div class="overflow-hidden rounded-t-lg">
+          <img src="{{ url_for('static', filename=related.image) }}" alt="{{ related.title }}" class="w-full h-40 object-cover transition-transform duration-300 hover:scale-105">
+        </div>
+        <div class="p-4">
+          <h3 class="text-lg font-semibold text-gray-800 mb-3 hover:text-blue-600 transition-colors duration-200 line-clamp-2">{{ related.title }}</h3>
+          <div class="flex items-center text-xs text-gray-500 mb-3 space-x-4">
+            <div class="flex items-center">
+              <i class="fa-solid fa-calendar mr-1"></i>
+              <span>{{ related.date }}</span>
+            </div>
+            <div class="flex items-center">
+              <i class="fa-solid fa-user mr-1"></i>
+              <span class="truncate">{{ related.author }}</span>
+            </div>
+          </div>
+          <p class="text-gray-600 text-sm line-clamp-2 mb-3">{{ related.excerpt }}</p>
+          <a href="{{ url_for('public.detail_berita', perpus_slug=related.perpus_slug, slug=related.slug) }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors duration-200 flex items-center">
+            <span>Baca Selengkapnya</span>
+            <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+      
+    {% endcall %}
+  </section>
+  {% endif %}
+
+{% endcall %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Custom Image Popup Functions
+  function openImagePopup(imageSrc, caption) {
+    const popup = document.getElementById('imagePopup');
+    const popupImage = document.getElementById('popupImage');
+    const popupCaption = document.getElementById('popupCaption');
+    
+    popupImage.src = imageSrc;
+    popupCaption.textContent = caption;
+    
+    popup.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeImagePopup(event) {
+    if (event && event.target !== document.getElementById('imagePopup') && event.target.closest('.popup-close-btn') === null) {
+      return;
+    }
+    
+    const popup = document.getElementById('imagePopup');
+    popup.classList.remove('show');
+    document.body.style.overflow = 'auto';
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeImagePopup();
+    }
+  });
+</script>
+{% endblock %}

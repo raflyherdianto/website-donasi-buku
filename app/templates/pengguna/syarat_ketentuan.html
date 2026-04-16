@@ -1,0 +1,101 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container, card, grid_container %}
+
+{% block title %}
+Syarat & Ketentuan - Donasi Buku Lumajang
+{% endblock %}
+
+{% block content %}
+{% call content_container("7xl", "px-4 sm:px-6 py-10") %}
+    <div class="text-center mb-8 sm:mb-12">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-700 mb-4">Syarat & Ketentuan Donasi</h1>
+        <p class="text-gray-600 text-base sm:text-lg">Mohon membaca dengan seksama sebelum berdonasi.</p>
+    </div>
+
+    {% call grid_container("grid-cols-1 md:grid-cols-2", "gap-6 sm:gap-8") %}
+        
+        <!-- Bagian 1 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-400 hover:shadow-lg transition-all") %}
+            <div class="flex items-center space-x-3 mb-4">
+                <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-6a4 4 0 118 0v6m-4 4h.01M19 13a6 6 0 10-12 0v6a2 2 0 002 2h8a2 2 0 002-2v-6z"/>
+                </svg>
+                <h2 class="text-xl font-bold text-blue-700">1. Umum</h2>
+            </div>
+            <ul class="list-disc pl-6 space-y-2 text-sm sm:text-base text-gray-700">
+                <li>Website ini dikelola oleh Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang (Mula Malurung).</li>
+                <li>Buku Donasi akan dibagikan langsung oleh Pihak Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang kepada perpustakaan desa.</li>
+                <li>Dapat digunakan oleh siapa saja yang ingin berdonasi atau mengikuti distribusi buku.</li>
+                <li>Bersifat sukarela dan tidak memaksa.</li>
+                <li>Setelah diserahkan, buku menjadi milik perpustakaan sepenuhnya, dan perpustakaan berhak mengelola sesuai kebijakan koleksi.</li>
+            </ul>
+        {% endcall %}
+
+        <!-- Bagian 2 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-green-400 hover:shadow-lg transition-all") %}
+            <div class="flex items-center space-x-3 mb-4">
+                <svg class="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                <h2 class="text-xl font-bold text-green-700">2. Ketentuan Donatur</h2>
+            </div>
+            <ul class="list-disc pl-6 space-y-2 text-sm sm:text-base text-gray-700">
+                <li>Donatur wajib mengisi data diri dengan benar pada formulir donasi.</li>
+                <li>Donatur wajib mengikuti tata cara pengisian formulir sesuai arahan yang telah ditetapkan.</li>
+                <li>Donatur bersedia menanggung biaya pengiriman buku dari dalam maupun luar Kabupaten Lumajang.</li>
+                <li>Donatur memastikan buku yang didonasikan merupakan milik pribadi dan tidak melanggar hak cipta.</li>
+                <li>Donatur menyetujui bahwa setelah proses donasi selesai, buku sepenuhnya menjadi milik perpustakaan.</li>
+            </ul>
+        {% endcall %}
+
+        <!-- Bagian 3 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-red-400 hover:shadow-lg transition-all") %}
+            <div class="flex items-center space-x-3 mb-4">
+                <svg class="w-6 h-6 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8c-1.11 0-2.08.402-2.599 1M12 16c-1.11 0-2.08-.402-2.599-1M12 16c1.11 0 2.08-.402 2.599-1M15 19l5-5-5-5M9 5l-5 5 5 5"/>
+                </svg>
+                <h2 class="text-xl font-bold text-red-700">3. Informasi Buku</h2>
+            </div>
+            <ul class="list-disc pl-6 space-y-2 text-sm sm:text-base text-gray-700">
+                <li>Semua Jenis Buku dapat didonasikan dan diterima, Kecuali Buku yang mengandung unsur SARA, pornografi, kekerasan, ujaran kebencian, atau pelanggaran hak cipta tidak akan diterima.</li>
+                <li>Buku harus dalam kondisi layak baca, tidak robek berat, atau rusak parah.</li>
+                <li>Buku yang dapat didonasikan dikelompokkan berdasarkan kategori umum, Untuk melihat daftar lengkap kategori subjek yang digunakan berikut: <a class="text-blue-600 hover:underline" href="{{ url_for('public.kategori_buku') }}"><strong>Kategori Buku</strong>.</a></li>
+            </ul>
+        {% endcall %}
+
+        <!-- Bagian 4 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-yellow-400 hover:shadow-lg transition-all") %}
+            <div class="flex items-center space-x-3 mb-4">
+                <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4z"/>
+                </svg>
+                <h2 class="text-xl font-bold text-yellow-700">4. Pengelolaan Donasi</h2>
+            </div>
+            <ul class="list-disc pl-6 space-y-2 text-sm sm:text-base text-gray-700">
+                <li>Evaluasi/Seleksi dan distribusi buku dilakukan oleh Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang.</li>
+                <li>Perpustakaan berhak menolak donasi yang tidak sesuai kebijakan, rusak berat, atau tidak relevan.</li>
+                <li>Buku yang sudah dievaluasi dan diseleksi akan didistribusi berdasarkan kebutuhan perpustakaan desa.</li>
+                <li>Donasi yang tidak sesuai akan dialihkan oleh pihak perpustakaan sesuai dengan prosedur yang berlaku.</li>
+                <li>Bahan non-pustaka (artefak, medali, benda museum) selain buku tidak diterima.</li>
+            </ul>
+        {% endcall %}
+
+        <!-- Bagian 5 -->
+        {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-purple-400 hover:shadow-lg transition-all") %}
+            <div class="flex items-center space-x-3 mb-4">
+                <svg class="w-6 h-6 text-purple-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405M4 4h16v16H4z"/>
+                </svg>
+                <h2 class="text-xl font-bold text-purple-700">5. Informasi Tambahan</h2>
+            </div>
+            <ul class="list-disc pl-6 space-y-2 text-sm sm:text-base text-gray-700">
+                <li>Status distribusi buku dapat dipantau melalui fitur Riwayat Transparansi/Transparansi di website.</li>
+                <li>Data pribadi donatur akan dijaga keamanannya dan hanya digunakan untuk administrasi internal donasi.</li>
+                <li>Kontak dan layanan informasi tersedia melalui menu <strong>Kontak Kami</strong> atau media sosial resmi Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang.</li>
+                <li>Donatur akan mendapatkan tanda terima atau <strong>sertifikat donasi</strong> sebagai bentuk apresiasi dari pihak perpustakaan.</li>
+            </ul>
+        {% endcall %}
+
+    {% endcall %}
+{% endcall %}
+{% endblock %}

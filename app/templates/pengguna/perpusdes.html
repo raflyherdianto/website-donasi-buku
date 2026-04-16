@@ -1,0 +1,521 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container, grid_container, card, page_header %}
+
+{% block title %}PerpusDes - Kabupaten Lumajang{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- DataTables JS -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+
+<style>
+/* Custom DataTables Styling */
+.dataTables_wrapper {
+    font-family: inherit;
+}
+
+.dataTables_length select,
+.dataTables_filter input {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.dataTables_length,
+.dataTables_filter,
+.dataTables_info,
+.dataTables_paginate {
+    margin: 0.75rem 0;
+}
+
+.dataTables_length label,
+.dataTables_filter label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dataTables_paginate .paginate_button {
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.375rem !important;
+    padding: 0.5rem 0.75rem !important;
+    margin: 0 0.125rem !important;
+    background: white !important;
+    color: #374151 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    display: inline-block !important;
+    box-sizing: border-box !important;
+}
+
+.dataTables_paginate .paginate_button:hover {
+    background: #3b82f6 !important;
+    border-color: #9ca3af !important;
+    color: #111827 !important;
+    border-radius: 0.375rem !important;
+    text-decoration: none !important;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+    border-radius: 0.375rem !important;
+}
+
+.dataTables_paginate .paginate_button.current:hover {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: white !important;
+    border-radius: 0.375rem !important;
+    text-decoration: none !important;
+}
+
+.dataTables_paginate .paginate_button.disabled {
+    background: #f9fafb !important;
+    border-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    border-radius: 0.375rem !important;
+}
+
+.dataTables_paginate .paginate_button.disabled:hover {
+    background: #f9fafb !important;
+    border-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    border-radius: 0.375rem !important;
+    text-decoration: none !important;
+}
+
+/* Additional styling to ensure consistent appearance */
+.dataTables_paginate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.125rem;
+}
+
+.dataTables_paginate .paginate_button a {
+    border-radius: 0.375rem !important;
+    text-decoration: none !important;
+}
+
+#perpusTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+#perpusTable thead th {
+    background: #f3f4f6;
+    color: #374151;
+    font-weight: 600;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    position: relative;
+}
+
+#perpusTable thead th.sorting:before,
+#perpusTable thead th.sorting:after,
+#perpusTable thead th.sorting_asc:before,
+#perpusTable thead th.sorting_asc:after,
+#perpusTable thead th.sorting_desc:before,
+#perpusTable thead th.sorting_desc:after {
+    color: #6b7280;
+}
+
+#perpusTable tbody td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+#perpusTable tbody tr:hover {
+    background: #f9fafb;
+}
+
+.dt-responsive {
+    overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+    .dataTables_length,
+    .dataTables_filter {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .dataTables_info,
+    .dataTables_paginate {
+        text-align: center;
+        margin-top: 1rem;
+    }
+    
+    .dataTables_paginate .paginate_button {
+        padding: 0.375rem 0.5rem !important;
+        font-size: 0.875rem !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+{{ page_header("Data Perpustakaan Desa Kabupaten Lumajang", "Informasi lengkap perpustakaan desa di seluruh Kabupaten Lumajang") }}
+
+{% call content_container("7xl", "px-4 sm:px-6 py-10") %}
+    {# Add filter dropdowns #}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-center sm:space-x-4 mb-6">
+        <select id="filter-kecamatan" class="p-2 border border-gray-300 rounded mb-2 sm:mb-0">
+            <option value="">-- Pilih Kecamatan --</option>
+        </select>
+        <select id="filter-desa" class="p-2 border border-gray-300 rounded mb-2 sm:mb-0">
+            <option value="">-- Pilih Desa --</option>
+        </select>
+        <select id="filter-perpustakaan" class="p-2 border border-gray-300 rounded">
+            <option value="">-- Pilih Perpustakaan --</option>
+        </select>
+    </div>
+
+    <!-- TABEL HASIL -->
+    {% if perpusdess|default([]) %}
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="overflow-x-auto">
+                <table id="perpusTable" class="min-w-full bg-white">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Nama Perpustakaan</th>
+                            <th class="text-left">Kecamatan</th>
+                            <th class="text-left">Desa</th>
+                            <th class="text-left">Jumlah Koleksi</th>
+                            <th class="text-left">Jumlah Eks</th>
+                            <th class="text-left">Profil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for perpusdes in perpusdess %}
+                        <tr>
+                            <td class="font-medium text-gray-800">{{ perpusdes.nama }}</td>
+                            <td class="text-gray-600">{{ perpusdes.kecamatan if perpusdes.kecamatan else '-' }}</td>
+                            <td class="text-gray-600">{{ perpusdes.desa_nama }}</td>
+                            <td class="text-gray-600">{{ perpusdes.jumlah_koleksi }}</td>
+                            <td class="text-gray-600">{{ perpusdes.jumlah_eks }}</td>
+                            <td>
+                                <button onclick="checkPerpusDetail({{ perpusdes.id }}, '{{ perpusdes.nama|replace("'", "\\'") }}', '{{ perpusdes.kecamatan|replace("'", "\\'") if perpusdes.kecamatan else '' }}')" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm">
+                                    Selengkapnya
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        {% call card(class="bg-gray-50 rounded-xl shadow-md p-8 sm:p-16 text-center") %}
+            <div class="flex flex-col items-center">
+                <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <h2 class="text-xl font-semibold text-gray-600 mb-2">Belum ada perpustakaan yang tersedia.</h2>
+                <p class="text-gray-500 text-sm sm:text-base">Silakan kembali lagi nanti setelah admin menambahkan data.</p>
+            </div>
+        {% endcall %}
+    {% endif %}
+{% endcall %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const perpusData = {{ perpusdess|tojson }};
+
+$(document).ready(function() {
+    {% if perpusdess|default([]) %}
+    // initialize DataTable and capture instance
+    var table = $('#perpusTable').DataTable({
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10,25,50,-1],[10,25,50,"Semua"]],
+        language: {
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ entri",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+            infoEmpty: "Menampilkan 0 sampai 0 dari 0 entri",
+            infoFiltered: "(disaring dari _MAX_ total entri)",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: '<i class="fa-solid fa-chevron-right"></i>',
+                previous: '<i class="fa-solid fa-chevron-left"></i>'
+            },
+            emptyTable: "Tidak ada data yang tersedia",
+            zeroRecords: "Tidak ditemukan data yang sesuai"
+        },
+        columnDefs: [
+            { orderable: true, targets: [0,1,2,3,4] },
+            { orderable: false, targets: [5] }
+        ],
+        order: [[0,'asc']],
+        dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4"lf>rt<"flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4"ip>',
+    });
+
+    // custom row filter
+    $.fn.dataTable.ext.search.push(function(settings, data) {
+        var kec = $('#filter-kecamatan').val(),
+            desaVal = $('#filter-desa').val(),
+            perp = $('#filter-perpustakaan').val();
+        if (kec && data[1] !== kec) return false;
+        if (desaVal && data[2] !== desaVal) return false;
+        if (perp && data[0] !== perp) return false;
+        return true;
+    });
+
+    // populate dropdowns
+    function populateKecamatan() {
+        let list = [...new Set(perpusData.map(i => i.kecamatan))];
+        let sel = $('#filter-kecamatan').empty().append('<option value="">-- Pilih Kecamatan --</option>');
+        list.forEach(v => sel.append(`<option value="${v}">${v}</option>`));
+    }
+    function populateDesa() {
+        let selK = $('#filter-kecamatan').val();
+        let list = perpusData
+            .filter(i => !selK || i.kecamatan===selK)
+            .map(i => i.desa_nama);
+        list = [...new Set(list)];
+        let sel = $('#filter-desa').empty().append('<option value="">-- Pilih Desa --</option>');
+        list.forEach(v => sel.append(`<option value="${v}">${v}</option>`));
+    }
+    function populatePerpus() {
+        let selK = $('#filter-kecamatan').val(),
+            selD = $('#filter-desa').val();
+        let list = perpusData
+            .filter(i => (!selK||i.kecamatan===selK) && (!selD||i.desa_nama===selD))
+            .map(i => i.nama);
+        list = [...new Set(list)];
+        let sel = $('#filter-perpustakaan').empty().append('<option value="">-- Pilih Perpustakaan --</option>');
+        list.forEach(v => sel.append(`<option value="${v}">${v}</option>`));
+    }
+
+    // initial population
+    populateKecamatan();
+    populateDesa();
+    populatePerpus();
+
+    // event handlers
+    $('#filter-kecamatan').on('change', function(){
+        populateDesa();
+        populatePerpus();
+        table.draw();
+    });
+    $('#filter-desa').on('change', function(){
+        populatePerpus();
+        table.draw();
+    });
+    $('#filter-perpustakaan').on('change', function(){
+        table.draw();
+    });
+    {% endif %}
+});
+
+// Function to check perpus detail and redirect or show toast
+function checkPerpusDetail(perpusId, perpusName, kecamatanName) {
+    // Create slug from perpus name and kecamatan
+    const slug = createPerpusSlug(perpusName, kecamatanName);
+    
+    console.log(`=== DEBUGGING PERPUS DETAIL CHECK ===`);
+    console.log(`Perpus Name: "${perpusName}"`);
+    console.log(`Kecamatan Name: "${kecamatanName}"`);
+    console.log(`Perpus ID: ${perpusId}`);
+    console.log(`Generated Slug: "${slug}"`);
+    
+    // Make AJAX request to check if detail exists
+    fetch(`/api/check-perpus-detail/${perpusId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('=== API RESPONSE ===');
+            console.log('Full Response:', data);
+            
+            if (data.expected_slug) {
+                console.log(`Server Expected Slug: "${data.expected_slug}"`);
+                console.log(`Client Generated Slug: "${slug}"`);
+                console.log(`Slugs Match: ${data.expected_slug === slug}`);
+            }
+            
+            // Add more detailed debugging
+            if (data.debug_info) {
+                console.log('=== DETAILED DEBUG INFO ===');
+                console.log('Perpus Name from Server:', data.debug_info.perpus_name);
+                console.log('Kecamatan Name from Server:', data.debug_info.kecamatan_name);
+                console.log('Detail Exists:', data.debug_info.detail_exists);
+                console.log('Field Validation:');
+                console.log('- Penanggung Jawab Valid:', data.debug_info.penanggung_jawab_valid, `(Value: "${data.debug_info.penanggung_jawab_value}")`);
+                console.log('- Deskripsi Valid:', data.debug_info.deskripsi_valid, `(Value: "${data.debug_info.deskripsi_value}")`);
+                console.log('- Latar Belakang Valid:', data.debug_info.latar_belakang_valid, `(Value: "${data.debug_info.latar_belakang_value}")`);
+            }
+            
+            if (data.has_detail) {
+                // Use the server's expected slug for consistency
+                const finalSlug = data.expected_slug || slug;
+                console.log(`=== REDIRECTING ===`);
+                console.log(`Final URL: /perpusdes/${finalSlug}`);
+                window.location.href = `/perpusdes/${finalSlug}`;
+            } else {
+                // Show more specific toast notification
+                let message = 'Profil perpustakaan belum tersedia atau belum lengkap';
+                if (data.reason === 'no_detail_record') {
+                    message = 'Profil perpustakaan belum dibuat';
+                } else if (data.reason === 'perpus_not_found') {
+                    message = 'Perpustakaan tidak ditemukan';
+                } else if (data.debug_info) {
+                    // Create more specific message based on missing fields
+                    const missingFields = [];
+                    if (!data.debug_info.penanggung_jawab_valid) missingFields.push('Penanggung Jawab');
+                    if (!data.debug_info.deskripsi_valid) missingFields.push('Deskripsi');
+                    if (!data.debug_info.latar_belakang_valid) missingFields.push('Latar Belakang');
+                    
+                    if (missingFields.length > 0) {
+                        message = `Profil perpustakaan belum lengkap. Field yang kosong: ${missingFields.join(', ')}`;
+                    }
+                }
+                
+                console.log('=== SHOWING TOAST ===');
+                console.log('Message:', message);
+                showToast(message, 'warning');
+            }
+        })
+        .catch(error => {
+            console.error('=== ERROR ===');
+            console.error('Error checking perpus detail:', error);
+            showToast('Terjadi kesalahan saat memuat data: ' + error.message, 'error');
+        });
+}
+
+// Function to create perpus slug (EXACTLY match Python function)
+function createPerpusSlug(perpusName, kecamatanName) {
+    if (!perpusName) {
+        console.log('Slug creation: Empty name -> "perpusdesa"');
+        return 'perpusdesa';
+    }
+    
+    console.log(`=== SLUG CREATION STEPS ===`);
+    console.log(`Perpus Input: "${perpusName}"`);
+    console.log(`Kecamatan Input: "${kecamatanName || 'N/A'}"`);
+    
+    // Clean perpus name
+    let cleanPerpus = perpusName.toLowerCase();
+    console.log(`After toLowerCase (perpus): "${cleanPerpus}"`);
+    
+    // Remove common words from perpus name (same order as Python)
+    cleanPerpus = cleanPerpus.replace(/perpustakaan/g, '').replace(/perpusdes/g, '').replace(/desa/g, '').replace(/tbm/g, '');
+    console.log(`After removing common words (perpus): "${cleanPerpus}"`);
+    
+    // Remove special characters except spaces and hyphens from perpus name
+    cleanPerpus = cleanPerpus.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+    console.log(`After removing special chars (perpus): "${cleanPerpus}"`);
+    
+    // Replace multiple spaces/hyphens with empty string
+    cleanPerpus = cleanPerpus.replace(/[-\s]+/g, '');
+    console.log(`After removing spaces/hyphens (perpus): "${cleanPerpus}"`);
+    
+    // Clean kecamatan name if provided
+    let cleanKecamatan = '';
+    if (kecamatanName) {
+        cleanKecamatan = kecamatanName.toLowerCase();
+        console.log(`After toLowerCase (kecamatan): "${cleanKecamatan}"`);
+        
+        // Remove common words from kecamatan name
+        cleanKecamatan = cleanKecamatan.replace(/kecamatan/g, '').replace(/kec/g, '');
+        console.log(`After removing common words (kecamatan): "${cleanKecamatan}"`);
+        
+        // Remove special characters except spaces and hyphens
+        cleanKecamatan = cleanKecamatan.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+        console.log(`After removing special chars (kecamatan): "${cleanKecamatan}"`);
+        
+        // Replace multiple spaces/hyphens with empty string
+        cleanKecamatan = cleanKecamatan.replace(/[-\s]+/g, '');
+        console.log(`After removing spaces/hyphens (kecamatan): "${cleanKecamatan}"`);
+    }
+    
+    // Combine perpus and kecamatan
+    let result;
+    if (cleanPerpus && cleanKecamatan) {
+        result = `perpus${cleanPerpus}${cleanKecamatan}`;
+    } else if (cleanPerpus) {
+        result = `perpus${cleanPerpus}`;
+    } else {
+        result = 'perpusdesa';
+    }
+    
+    console.log(`Final result: "${result}"`);
+    return result;
+}
+
+// Toast function (if not already defined)
+function showToast(message, type = 'info', duration = 4000) {
+    const toast = document.createElement('div');
+    const typeClasses = {
+        'success': 'bg-green-500 text-white',
+        'error': 'bg-red-500 text-white',
+        'warning': 'bg-yellow-500 text-white',
+        'info': 'bg-blue-500 text-white'
+    };
+    
+    toast.className = `${typeClasses[type]} px-6 py-3 rounded-lg shadow-lg fixed top-4 right-4 z-50 transform transition-all duration-300`;
+    toast.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-sm font-medium">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), duration);
+}
+</script>
+{% endblock %}
+<!-- DROPDOWN SCRIPT -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".dropdown-toggle").forEach(function (toggle) {
+    toggle.addEventListener("click", function (e) {
+      e.preventDefault();
+      const dropdown = this.closest(".dropdown");
+      dropdown.classList.toggle("show");
+      document.querySelectorAll(".dropdown").forEach(function (other) {
+        if (other !== dropdown) other.classList.remove("show");
+      });
+    });
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest(".dropdown")) {
+      document.querySelectorAll(".dropdown").forEach(function (dropdown) {
+        dropdown.classList.remove("show");
+      });
+    }
+  });
+});
+</script>
+
+</body>
+</html>

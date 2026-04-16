@@ -1,0 +1,518 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% from "superadmin/content_wrapper.html" import page_header, card, stats_card %}
+
+{% block title %}Statistik{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Statistik", "Dashboard analitik sistem donasi buku") }}
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+  {{ stats_card("Total Buku Diterima", stats.total_buku_diterima|default(0), "fas fa-book", "blue") }}
+  {{ stats_card("Total Buku Tersalurkan", stats.total_buku_tersalurkan|default(0), "fas fa-truck", "green") }}
+  {{ stats_card("Total Kunjungan Perpusdes", stats.total_kunjungan|default(0), "fas fa-users", "purple") }}
+</div>
+
+<!-- Analytics Kunjungan -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-8">
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+    <h3 class="text-xl font-semibold text-blue-700 mb-4 lg:mb-0">Analytics Kunjungan Perpustakaan</h3>
+    
+    <!-- Filters - Swapped positions -->
+    <div class="flex flex-col sm:flex-row gap-3">
+      <select id="kecamatanFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm">
+        <option value="">Semua Kecamatan</option>
+        {% for kecamatan in kecamatan_list %}
+        <option value="{{ kecamatan }}">{{ kecamatan }}</option>
+        {% endfor %}
+      </select>
+      
+      <select id="perpusFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm">
+        <option value="">Semua Perpustakaan</option>
+        {% for perpus in perpus_list %}
+        <option value="{{ perpus.id }}">{{ perpus.nama }}</option>
+        {% endfor %}
+      </select>
+      
+      <select id="yearFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm">
+        {% for year in available_years %}
+        <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+      
+      <div class="text-right">
+        <div class="text-xs text-gray-500">Total Kunjungan</div>
+        <div id="totalVisitsDisplay" class="text-lg font-bold text-blue-700">0</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading indicator -->
+  <div id="visitLoadingIndicator" class="text-center py-4 hidden">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+    <p class="mt-2 text-gray-600">Memuat data kunjungan...</p>
+  </div>
+  
+  <div class="relative h-80">
+    <canvas id="visitChart"></canvas>
+  </div>
+</div>
+
+<!-- Grafik Perkembangan Donasi Diterima -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-8">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <h3 class="text-xl font-semibold text-green-700 mb-4 sm:mb-0">Perkembangan Donasi Diterima Berdasarkan Subjek</h3>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <select id="donationMonthFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm">
+        <option value="">Semua Bulan</option>
+        <option value="1">Januari</option>
+        <option value="2">Februari</option>
+        <option value="3">Maret</option>
+        <option value="4">April</option>
+        <option value="5">Mei</option>
+        <option value="6">Juni</option>
+        <option value="7">Juli</option>
+        <option value="8">Agustus</option>
+        <option value="9">September</option>
+        <option value="10">Oktober</option>
+        <option value="11">November</option>
+        <option value="12">Desember</option>
+      </select>
+      <select id="donationYearFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm">
+        {% for year in available_years %}
+        <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  
+  <!-- Loading indicator -->
+  <div id="donationLoadingIndicator" class="text-center py-4 hidden">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-700"></div>
+    <p class="mt-2 text-gray-600">Memuat data donasi...</p>
+  </div>
+  
+  <div class="relative h-80">
+    <canvas id="donationChart"></canvas>
+  </div>
+</div>
+
+<!-- Grafik Perkembangan Distribusi -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-8">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <h3 class="text-xl font-semibold text-purple-700 mb-4 sm:mb-0">Perkembangan Distribusi Buku ke Perpusdes</h3>
+    <select id="distributionYearFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm">
+      {% for year in available_years %}
+      <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <!-- Loading indicator -->
+  <div id="distributionLoadingIndicator" class="text-center py-4 hidden">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
+    <p class="mt-2 text-gray-600">Memuat data distribusi...</p>
+  </div>
+  
+  <div class="relative h-80">
+    <canvas id="distributionChart"></canvas>
+  </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <!-- Top Subjects -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h4 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Subjek Buku Terpopuler</h4>
+    <div class="space-y-3">
+      {% for subjek in top_subjects %}
+      <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+        <span class="font-medium">{{ subjek.nama }}</span>
+        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{{ subjek.total_donasi }} buku</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  
+  <!-- Top Libraries -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h4 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Perpusdes Penerima Terbanyak</h4>
+    <div class="space-y-3">
+      {% for perpus in top_libraries %}
+      <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+        <div>
+          <div class="font-medium">{{ perpus.nama }}</div>
+          <div class="text-sm text-gray-600">{{ perpus.kecamatan }}</div>
+        </div>
+        <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">{{ perpus.total_diterima }} buku</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification for errors -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let visitChart = null;
+let donationChart = null;
+let distributionChart = null;
+
+// Store original perpus list for filtering
+const allPerpusList = {{ perpus_list|tojson }};
+
+// Toast notification function
+function showToast(message, type = 'error', duration = 4000) {
+  let toastContainer = document.getElementById('toast-container');
+  
+  const toast = document.createElement('div');
+  const typeClasses = {
+    'success': 'bg-green-500 text-white',
+    'error': 'bg-red-500 text-white',
+    'warning': 'bg-yellow-500 text-white',
+    'info': 'bg-blue-500 text-white'
+  };
+  
+  toast.className = `${typeClasses[type]} px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 max-w-sm`;
+  toast.innerHTML = `
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-medium">${message}</span>
+      <button onclick="closeToast(this)" class="ml-4 text-white hover:text-gray-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  toastContainer.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.remove('translate-x-full', 'opacity-0');
+  }, 100);
+  
+  setTimeout(() => {
+    closeToast(toast.querySelector('button'));
+  }, duration);
+}
+
+function closeToast(button) {
+  const toast = button.closest('div').parentElement;
+  toast.classList.add('translate-x-full', 'opacity-0');
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 300);
+}
+
+// Initialize charts
+function initializeCharts() {
+  // Visit Chart
+  const visitCtx = document.getElementById('visitChart').getContext('2d');
+  visitChart = new Chart(visitCtx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+      datasets: [{
+        label: 'Jumlah Kunjungan',
+        data: new Array(12).fill(0),
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderColor: '#3B82F6',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+
+  // Donation Chart
+  const donationCtx = document.getElementById('donationChart').getContext('2d');
+  donationChart = new Chart(donationCtx, {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Buku Diterima',
+        data: [],
+        backgroundColor: '#10B981',
+        borderColor: '#059669',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+
+  // Distribution Chart
+  const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+  distributionChart = new Chart(distributionCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+      datasets: [{
+        label: 'Buku Tersalurkan',
+        data: new Array(12).fill(0),
+        backgroundColor: '#8B5CF6',
+        borderColor: '#7C3AED',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+}
+
+// Load visit data
+async function loadVisitData() {
+  const perpusId = document.getElementById('perpusFilter').value;
+  const kecamatan = document.getElementById('kecamatanFilter').value;
+  const year = document.getElementById('yearFilter').value;
+  
+  document.getElementById('visitLoadingIndicator').classList.remove('hidden');
+  
+  try {
+    const params = new URLSearchParams();
+    if (perpusId) params.append('perpus_id', perpusId);
+    if (kecamatan) params.append('kecamatan', kecamatan);
+    if (year) params.append('year', year);
+    
+    const response = await fetch(`/superadmin/api/visit-data?${params}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    // Update total visits
+    document.getElementById('totalVisitsDisplay').textContent = data.total;
+    
+    // Update visit chart
+    const monthlyCount = data.data.map(d => d.count);
+    visitChart.data.datasets[0].data = monthlyCount;
+    visitChart.update();
+    
+  } catch (error) {
+    console.error('Error loading visit data:', error);
+    showToast('Gagal memuat data kunjungan: ' + error.message, 'error');
+    
+    // Reset to zero data on error
+    document.getElementById('totalVisitsDisplay').textContent = '0';
+    visitChart.data.datasets[0].data = new Array(12).fill(0);
+    visitChart.update();
+  } finally {
+    document.getElementById('visitLoadingIndicator').classList.add('hidden');
+  }
+}
+
+// Load donation data
+async function loadDonationData() {
+  const year = document.getElementById('donationYearFilter').value;
+  const month = document.getElementById('donationMonthFilter').value;
+  
+  document.getElementById('donationLoadingIndicator').classList.remove('hidden');
+  
+  try {
+    let url = `/superadmin/api/donation-data/${year}`;
+    if (month) {
+      url += `?month=${month}`;
+    }
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    // Update donation chart
+    const labels = data.data.map(d => d.subjek_nama);
+    const values = data.data.map(d => d.total_jumlah);
+    
+    donationChart.data.labels = labels;
+    donationChart.data.datasets[0].data = values;
+    donationChart.update();
+    
+  } catch (error) {
+    console.error('Error loading donation data:', error);
+    showToast('Gagal memuat data donasi: ' + error.message, 'error');
+    
+    // Reset chart on error
+    donationChart.data.labels = [];
+    donationChart.data.datasets[0].data = [];
+    donationChart.update();
+  } finally {
+    document.getElementById('donationLoadingIndicator').classList.add('hidden');
+  }
+}
+
+// Load distribution data
+async function loadDistributionData() {
+  const year = document.getElementById('distributionYearFilter').value;
+  
+  document.getElementById('distributionLoadingIndicator').classList.remove('hidden');
+  
+  try {
+    const response = await fetch(`/superadmin/api/distribution-data/${year}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    // Update distribution chart
+    const monthlyCount = data.data.map(d => d.count);
+    distributionChart.data.datasets[0].data = monthlyCount;
+    distributionChart.update();
+    
+  } catch (error) {
+    console.error('Error loading distribution data:', error);
+    showToast('Gagal memuat data distribusi: ' + error.message, 'error');
+    
+    // Reset to zero data on error
+    distributionChart.data.datasets[0].data = new Array(12).fill(0);
+    distributionChart.update();
+  } finally {
+    document.getElementById('distributionLoadingIndicator').classList.add('hidden');
+  }
+}
+
+// Event listeners - Updated order
+document.getElementById('kecamatanFilter').addEventListener('change', function() {
+  filterPerpusByKecamatan();
+  loadVisitData();
+});
+document.getElementById('perpusFilter').addEventListener('change', loadVisitData);
+document.getElementById('yearFilter').addEventListener('change', loadVisitData);
+document.getElementById('donationYearFilter').addEventListener('change', loadDonationData);
+document.getElementById('donationMonthFilter').addEventListener('change', loadDonationData);
+document.getElementById('distributionYearFilter').addEventListener('change', loadDistributionData);
+
+// Filter perpus dropdown based on kecamatan selection
+function filterPerpusByKecamatan() {
+  const selectedKecamatan = document.getElementById('kecamatanFilter').value;
+  const perpusFilter = document.getElementById('perpusFilter');
+  
+  // Clear current perpus options
+  perpusFilter.innerHTML = '<option value="">Semua Perpustakaan</option>';
+  
+  if (selectedKecamatan) {
+    // Filter perpus by selected kecamatan
+    const filteredPerpus = allPerpusList.filter(p => p.kecamatan === selectedKecamatan);
+    
+    filteredPerpus.forEach(perpus => {
+      const option = document.createElement('option');
+      option.value = perpus.id;
+      option.textContent = perpus.nama;
+      perpusFilter.appendChild(option);
+    });
+  } else {
+    // Show all perpus when no kecamatan is selected
+    allPerpusList.forEach(perpus => {
+      const option = document.createElement('option');
+      option.value = perpus.id;
+      option.textContent = perpus.nama;
+      perpusFilter.appendChild(option);
+    });
+  }
+}
+
+// Remove the old perpus filter event listener function since we changed the logic
+// Update perpus filter to also update kecamatan when a specific perpus is selected
+document.getElementById('perpusFilter').addEventListener('change', function() {
+  const selectedPerpusId = this.value;
+  const kecamatanFilter = document.getElementById('kecamatanFilter');
+  
+  if (selectedPerpusId) {
+    // Find the selected perpus and auto-select its kecamatan
+    const selectedPerpus = allPerpusList.find(p => p.id == selectedPerpusId);
+    if (selectedPerpus) {
+      kecamatanFilter.value = selectedPerpus.kecamatan;
+    }
+  }
+  
+  loadVisitData();
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Initializing statistics charts...');
+  
+  initializeCharts();
+  loadVisitData();
+  loadDonationData();
+  loadDistributionData();
+});
+</script>
+{% endblock %}

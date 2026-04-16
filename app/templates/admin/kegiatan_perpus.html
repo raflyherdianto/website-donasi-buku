@@ -1,0 +1,1208 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/content_wrapper.html" import page_header, card %}
+
+{% block title %}Kegiatan Perpustakaan{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.bootstrap5.min.css">
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .action-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+  }
+  
+  .action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .status-active {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+  }
+  
+  .status-archived {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #9ca3af;
+  }
+  
+  /* Enhanced DataTables styling */
+  .dataTables_wrapper {
+    font-family: inherit;
+  }
+  
+  .dataTables_length select,
+  .dataTables_filter input {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+    background-color: white !important;
+  }
+  
+  .dataTables_length select:focus,
+  .dataTables_filter input:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  .dataTables_length,
+  .dataTables_filter {
+    margin-bottom: 1rem;
+  }
+  
+  .dataTables_length label,
+  .dataTables_filter label {
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .dataTables_info {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 8px 0;
+  }
+  
+  .dataTables_paginate {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 14px;
+  }
+  
+  .dataTables_paginate .paginate_button {
+    padding: 6px 10px !important;
+    margin: 0 1px !important;
+    border-radius: 4px !important;
+    border: 1px solid #d1d5db !important;
+    background: white !important;
+    color: #374151 !important;
+    font-weight: 500;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .dataTables_paginate .paginate_button:hover:not(.disabled) {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .dataTables_paginate .paginate_button.current {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+  }
+  
+  .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    background: #f9fafb !important;
+    color: #9ca3af !important;
+  }
+  
+  .dataTables_paginate .paginate_button.disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .dataTables_paginate .paginate_button i {
+    font-size: 12px !important;
+  }
+  
+  .dataTables_wrapper .row:last-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  @media (max-width: 768px) {
+    .dataTables_wrapper .row:last-child {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .dataTables_paginate {
+      justify-content: center;
+      width: 100%;
+    }
+    
+    .dataTables_paginate .paginate_button {
+      padding: 5px 8px !important;
+      min-width: 28px !important;
+      height: 28px !important;
+      font-size: 13px !important;
+    }
+    
+    .dataTables_paginate .paginate_button i {
+      font-size: 11px !important;
+    }
+  }
+  
+  .image-preview {
+    width: 100%;
+    height: 120px;
+    border: 2px dashed #cbd5e0;
+    border-radius: 8px;
+    padding: 4px;
+    margin-top: 8px;
+    display: none;
+    overflow: hidden;
+    background: #f8fafc;
+    position: relative;
+  }
+  
+  .image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    display: block;
+  }
+  
+  /* CKEditor custom styling */
+  .ck-editor__editable {
+    min-height: 200px;
+  }
+  
+  .ck.ck-editor {
+    width: 100%;
+  }
+  
+  /* Style for displaying content with proper spacing */
+  .content-display {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.7;
+    color: #374151;
+  }
+
+  .content-display h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .content-display h1:first-child {
+    margin-top: 0;
+  }
+
+  .content-display h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.875rem;
+    margin-top: 1.25rem;
+    line-height: 1.3;
+  }
+
+  .content-display h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+    margin-top: 1rem;
+    line-height: 1.4;
+  }
+
+  .content-display h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.625rem;
+    margin-top: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .content-display p {
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: #4b5563;
+  }
+
+  .content-display ul, .content-display ol {
+    margin-bottom: 1rem;
+    padding-left: 1.25rem;
+    color: #4b5563;
+  }
+
+  .content-display ul {
+    list-style-type: disc;
+  }
+
+  .content-display ol {
+    list-style-type: decimal;
+  }
+
+  .content-display li {
+    margin-bottom: 0.375rem;
+    line-height: 1.6;
+    font-size: 0.875rem;
+  }
+
+  .content-display ul ul, .content-display ol ol {
+    margin-top: 0.375rem;
+    margin-bottom: 0;
+    padding-left: 1rem;
+  }
+
+  .content-display blockquote {
+    border-left: 3px solid #3b82f6;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: #6b7280;
+    background-color: #f8fafc;
+    padding: 0.75rem 1rem;
+    border-radius: 0 0.25rem 0.25rem 0;
+  }
+
+  .content-display strong, .content-display b {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .content-display em, .content-display i {
+    font-style: italic;
+  }
+
+  .content-display a {
+    color: #3b82f6;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+  }
+
+  .content-display a:hover {
+    color: #1d4ed8;
+  }
+
+  /* Fixed BR styling - minimal spacing for admin modal */
+  .content-display br {
+    display: block;
+    margin: 0.25rem 0;
+    line-height: 0;
+  }
+
+  /* Remove extra spacing from BR when between block elements */
+  .content-display h1 + br,
+  .content-display h2 + br,
+  .content-display h3 + br,
+  .content-display h4 + br,
+  .content-display h5 + br,
+  .content-display h6 + br,
+  .content-display p + br,
+  .content-display ul + br,
+  .content-display ol + br,
+  .content-display blockquote + br {
+    display: none;
+  }
+
+  /* Hide consecutive BRs beyond the first one */
+  .content-display br + br {
+    display: none;
+  }
+
+  /* BR before block elements should be minimal */
+  .content-display br + h1,
+  .content-display br + h2,
+  .content-display br + h3,
+  .content-display br + h4,
+  .content-display br + h5,
+  .content-display br + h6,
+  .content-display br + p,
+  .content-display br + ul,
+  .content-display br + ol {
+    margin-top: 0.375rem;
+  }
+
+  .content-display hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 1.5rem 0;
+  }
+
+  .content-display table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.875rem;
+  }
+
+  .content-display th, .content-display td {
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem;
+    text-align: left;
+  }
+
+  .content-display th {
+    background-color: #f9fafb;
+    font-weight: 600;
+  }
+
+  .content-display code {
+    background-color: #f3f4f6;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8125rem;
+  }
+
+  .content-display pre {
+    background-color: #1f2937;
+    color: #f9fafb;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-size: 0.8125rem;
+  }
+
+  .content-display pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Kegiatan Perpustakaan", "Kelola dan dokumentasikan kegiatan perpustakaan desa Anda.") }}
+
+<div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+  <!-- Header with Add Button -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <h3 class="text-xl font-semibold text-blue-700">Daftar Kegiatan Perpustakaan</h3>
+    <button type="button" onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center space-x-2 w-full sm:w-auto justify-center sm:justify-start">
+      <i data-lucide="plus" class="w-4 h-4"></i>
+      <span>Form Kegiatan</span>
+    </button>
+  </div>
+
+  <!-- DataTable Container -->
+  <div class="overflow-x-auto">
+    <table id="kegiatanTable" class="min-w-full text-sm text-gray-700 table-auto">
+      <thead class="bg-blue-100 text-blue-800">
+        <tr>
+          <th class="py-3 px-2 md:px-4 text-left">Tanggal</th>
+          <th class="py-3 px-2 md:px-4 text-left">Nama Kegiatan</th>
+          <th class="py-3 px-2 md:px-4 text-left">Status</th>
+          <th class="py-3 px-2 md:px-4 text-center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in data_kegiatan %}
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-2 px-2 md:px-4" data-sort="{{ item.tanggal_kegiatan.strftime('%Y%m%d') }}">
+            {{ item.tanggal_kegiatan.strftime('%d-%m-%Y') }}
+          </td>
+          <td class="py-2 px-2 md:px-4">
+            <div class="max-w-48 truncate font-medium" title="{{ item.nama_kegiatan }}">
+              {{ item.nama_kegiatan }}
+            </div>
+          </td>
+          <td class="py-2 px-2 md:px-4">
+            <span class="status-badge status-{{ item.status }}">
+              {% if item.status == 'active' %}Aktif{% else %}Arsip{% endif %}
+            </span>
+          </td>
+          <td class="py-2 px-2 md:px-4">
+            <div class="action-buttons">
+              <button onclick="viewDetail({{ item.id }})" 
+                      class="action-btn bg-blue-500 hover:bg-blue-600 text-white"
+                      title="Detail">
+                <i data-lucide="eye" class="w-3 h-3"></i>
+              </button>
+              <button onclick="editKegiatan({{ item.id }})" 
+                      class="action-btn bg-amber-500 hover:bg-amber-600 text-white"
+                      title="Edit">
+                <i data-lucide="edit" class="w-3 h-3"></i>
+              </button>
+              <button onclick="deleteKegiatan({{ item.id }})" 
+                      class="action-btn bg-red-500 hover:bg-red-600 text-white"
+                      title="Hapus">
+                <i data-lucide="trash-2" class="w-3 h-3"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto">
+    <div class="mt-3">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-semibold text-gray-900">Detail Kegiatan Perpustakaan</h3>
+        <button type="button" onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Kegiatan</label>
+            <div id="detail-tanggal" class="p-2 bg-gray-50 border rounded text-sm"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <div id="detail-status" class="p-2"></div>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Kegiatan</label>
+          <div id="detail-nama" class="p-2 bg-gray-50 border rounded text-sm font-medium"></div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Kegiatan</label>
+          <div id="detail-deskripsi" class="p-2 bg-gray-50 border rounded text-sm min-h-24"></div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-3">Lokasi Kegiatan</label>
+          <div id="detail-lokasi-text" class="p-2 bg-gray-50 border rounded text-sm mb-3"></div>
+          <div id="map-container" class="hidden">
+            <div id="detail-map" class="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-6 text-center">
+              <i class="fas fa-map-marked-alt text-4xl text-blue-500 mb-3"></i>
+              <h3 class="font-semibold text-gray-800 mb-2">Lokasi Kegiatan</h3>
+              <p class="text-sm text-gray-600 mb-3">Koordinat: <span id="detail-coordinates"></span></p>
+              <div class="space-y-2">
+                <a id="detail-maps-link" href="#" target="_blank" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm">
+                  <i class="fas fa-external-link-alt mr-2"></i>Buka di Google Maps
+                </a>
+                <br>
+                <a id="detail-osm-link" href="#" target="_blank" class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition text-sm">
+                  <i class="fas fa-map mr-2"></i>Buka di OpenStreetMap
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="detail-foto-container" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-3">Foto Kegiatan</label>
+          <div class="border rounded-lg p-4 bg-gray-50">
+            <img id="detail-foto" src="" alt="Foto Kegiatan" class="w-full max-h-64 object-contain rounded">
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex justify-end mt-6">
+        <button type="button" onclick="closeDetailModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded transition duration-200">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Form Modal -->
+<div id="kegiatanModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto">
+    <div class="mt-3">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900" id="modalTitle">Form Kegiatan Perpustakaan Desa</h3>
+        <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="kegiatanForm" method="POST" action="{{ url_for('admin.kegiatan_perpus') }}" enctype="multipart/form-data">
+        <input type="hidden" id="kegiatan_id" name="kegiatan_id" value="">
+        <input type="hidden" id="latitude" name="latitude" value="">
+        <input type="hidden" id="longitude" name="longitude" value="">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nama Kegiatan *</label>
+            <input type="text" id="nama_kegiatan" name="nama_kegiatan" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tanggal Kegiatan *</label>
+            <input type="date" id="tanggal_kegiatan" name="tanggal_kegiatan" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2" required>
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Deskripsi Kegiatan *</label>
+            <div class="mt-1">
+              <textarea id="deskripsi_kegiatan" name="deskripsi_kegiatan" class="hidden" required></textarea>
+              <div id="editor-container"></div>
+            </div>
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Lokasi Kegiatan *</label>
+            <div class="space-y-3">
+              <input type="text" id="lokasi_kegiatan" name="lokasi_kegiatan" class="block w-full border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 p-2" placeholder="Klik pada peta atau gunakan GPS untuk menandai lokasi" readonly required>
+              
+              <div class="flex items-center space-x-2">
+                <button type="button" onclick="getCurrentLocation()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center space-x-2">
+                  <i class="fas fa-crosshairs"></i>
+                  <span>Gunakan Lokasi Saat Ini</span>
+                </button>
+                <button type="button" onclick="clearLocation()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition flex items-center space-x-2">
+                  <i class="fas fa-times"></i>
+                  <span>Hapus Pin</span>
+                </button>
+              </div>
+              
+              <div id="locationDisplay" class="text-xs text-gray-500"></div>
+              
+              <!-- Interactive Map Container using Leaflet -->
+              <div class="border rounded-lg overflow-hidden">
+                <div id="interactive-map" style="height: 300px; width: 100%; position: relative;">
+                  <div id="map-placeholder" class="h-full flex items-center justify-center text-gray-500 bg-gray-100">
+                    <div class="text-center">
+                      <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                      <p class="font-medium">Memuat peta...</p>
+                      <p class="text-xs mt-1">Klik pada peta untuk menandai lokasi</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <p class="text-xs text-gray-500">
+                Klik "Gunakan Lokasi Saat Ini" untuk mendapatkan koordinat GPS otomatis, atau klik pada peta untuk menandai lokasi secara manual. Link Google Maps akan dibuat otomatis.
+              </p>
+            </div>
+          </div>
+          
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Foto Kegiatan (Maks 2MB)</label>
+            <input type="file" name="foto_kegiatan" id="foto_kegiatan" accept=".jpg,.jpeg,.png" onchange="previewImage(event)" class="w-full border border-gray-300 p-2 rounded bg-gray-50">
+            <p class="text-xs text-gray-500 mt-1">Format file: JPG, JPEG, PNG (Maksimal 2MB)</p>
+            <div id="imagePreview" class="image-preview"></div>
+          </div>
+
+          <!-- Status Field (only show for edit mode) -->
+          <div id="statusField" class="md:col-span-2 hidden">
+            <label class="block text-sm font-medium text-gray-700">Status Kegiatan</label>
+            <select id="status" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+              <option value="active">Aktif</option>
+              <option value="archived">Diarsipkan</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Status kegiatan menentukan apakah kegiatan masih aktif atau sudah diarsipkan</p>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end space-x-3 mt-6">
+          <button type="button" onclick="closeModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded transition duration-200">
+            Batal
+          </button>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition duration-200">
+            Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/responsive.bootstrap5.min.js"></script>
+
+<!-- CKEditor 5 - Free and Open Source -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+
+<!-- Leaflet for Interactive Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+let editorInstance = null;
+let map = null;
+let marker = null;
+let currentLat = null;
+let currentLng = null;
+let mapInitialized = false;
+
+// Initialize CKEditor 5
+document.addEventListener('DOMContentLoaded', function() {
+  ClassicEditor
+    .create(document.querySelector('#editor-container'), {
+      toolbar: [
+        'heading', '|',
+        'bold', 'italic', 'underline', '|',
+        'link', '|',
+        'bulletedList', 'numberedList', '|',
+        'outdent', 'indent', '|',
+        'blockQuote', '|',
+        'undo', 'redo'
+      ],
+      heading: {
+        options: [
+          { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+          { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+          { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+          { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+        ]
+      },
+      typing: {
+        transformations: {
+          remove: [
+            'symbols',
+            'quotes',
+            'typography'
+          ]
+        }
+      },
+      enterMode: 'p',
+      shiftEnterMode: 'br'
+    })
+    .then(editor => {
+      editorInstance = editor;
+      
+      function processContent(data) {
+        let processed = data.replace(/<\/p>(?!$)/g, '</p><br>');
+        processed = processed.replace(/<\/(h[1-6])>(?!$)/g, '</$1><br>');
+        return processed;
+      }
+      
+      editor.model.document.on('change:data', () => {
+        const rawData = editor.getData();
+        const processedData = processContent(rawData);
+        document.getElementById('deskripsi_kegiatan').value = processedData;
+      });
+      
+      editor.editing.view.document.on('enter', (evt, data) => {
+        if (data.isSoft) {
+          editor.execute('shiftEnter');
+          data.preventDefault();
+          evt.stop();
+        }
+      });
+      
+    })
+    .catch(error => {
+      console.error('Error initializing CKEditor:', error);
+    });
+});
+
+$(document).ready(function() {
+  $('#kegiatanTable').DataTable({
+    "language": {
+      "url": "//cdn.datatables.net/plug-ins/1.12.1/i18n/id.json",
+      "lengthMenu": "Tampilkan _MENU_ entri",
+      "search": "Cari:",
+      "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+      "infoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
+      "infoFiltered": "(disaring dari _MAX_ total entri)",
+      "paginate": {
+        "first": "Pertama",
+        "last": "Terakhir",
+        "next": '<i class="fa-solid fa-chevron-right"></i>',
+        "previous": '<i class="fa-solid fa-chevron-left"></i>'
+      }
+    },
+    "order": [[ 0, "desc" ]],
+    "pageLength": 10,
+    "responsive": true,
+    "scrollX": true,
+    "columnDefs": [
+      {
+        "targets": [0],
+        "type": "date",
+        "orderData": [0]
+      },
+      {
+        "targets": [3],
+        "orderable": false,
+        "searchable": false
+      }
+    ],
+    "initComplete": function() {
+      lucide.createIcons();
+      customizePagination();
+    },
+    "drawCallback": function() {
+      lucide.createIcons();
+      customizePagination();
+    }
+  });
+});
+
+function customizePagination() {
+  setTimeout(function() {
+    const prevButton = $('.dataTables_paginate .paginate_button.previous');
+    const nextButton = $('.dataTables_paginate .paginate_button.next');
+    
+    if (prevButton.length && !prevButton.find('i').length) {
+      prevButton.html('<i class="fa-solid fa-chevron-left"></i>');
+    }
+    
+    if (nextButton.length && !nextButton.find('i').length) {
+      nextButton.html('<i class="fa-solid fa-chevron-right"></i>');
+    }
+  }, 50);
+}
+
+function initializeInteractiveMap() {
+  if (mapInitialized) return;
+  
+  try {
+    const mapContainer = document.getElementById('interactive-map');
+    const placeholder = document.getElementById('map-placeholder');
+    
+    placeholder.style.display = 'none';
+    
+    const defaultLat = -8.1335;
+    const defaultLng = 113.2252;
+    
+    map = L.map('interactive-map').setView([defaultLat, defaultLng], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+    
+    map.on('click', function(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      setMapLocation(lat, lng, true);
+    });
+    
+    mapInitialized = true;
+    showToast('Peta berhasil dimuat. Klik pada peta untuk menandai lokasi.', 'info');
+    
+  } catch (error) {
+    console.error('Error initializing map:', error);
+    showToast('Gagal memuat peta: ' + error.message, 'error');
+    showFallbackLocationInput();
+  }
+}
+
+function showFallbackLocationInput() {
+  const mapContainer = document.getElementById('interactive-map');
+  mapContainer.innerHTML = `
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+      <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl mb-2"></i>
+      <p class="text-sm text-yellow-800 mb-3">Peta tidak dapat dimuat. Gunakan input koordinat manual:</p>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Latitude:</label>
+          <input type="number" id="manual-lat" step="any" placeholder="-8.1335" class="w-full p-2 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Longitude:</label>
+          <input type="number" id="manual-lng" step="any" placeholder="113.2252" class="w-full p-2 border rounded text-sm">
+        </div>
+      </div>
+      <button type="button" onclick="setManualCoordinates()" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+        Set Koordinat
+      </button>
+    </div>
+  `;
+}
+
+function setManualCoordinates() {
+  const lat = parseFloat(document.getElementById('manual-lat').value);
+  const lng = parseFloat(document.getElementById('manual-lng').value);
+  
+  if (isNaN(lat) || isNaN(lng)) {
+    showToast('Masukkan koordinat yang valid', 'error');
+    return;
+  }
+  
+  setMapLocation(lat, lng, false);
+}
+
+function setMapLocation(lat, lng, showPin = true) {
+  currentLat = lat;
+  currentLng = lng;
+  
+  document.getElementById('latitude').value = lat;
+  document.getElementById('longitude').value = lng;
+  
+  const mapsLink = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+  document.getElementById('lokasi_kegiatan').value = mapsLink;
+  
+  let locationHTML = '<div class="flex items-center space-x-2">';
+  locationHTML += '<i class="fas fa-map-marker-alt text-green-600"></i>';
+  locationHTML += '<span>Koordinat: ' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '</span>';
+  locationHTML += '<a href="' + mapsLink + '" target="_blank" class="text-blue-600 hover:underline text-xs">';
+  locationHTML += '<i class="fas fa-external-link-alt mr-1"></i>Lihat di Google Maps';
+  locationHTML += '</a>';
+  locationHTML += '</div>';
+  
+  document.getElementById('locationDisplay').innerHTML = locationHTML;
+  
+  if (map && showPin) {
+    if (marker) {
+      marker.setLatLng([lat, lng]);
+    } else {
+      marker = L.marker([lat, lng]).addTo(map);
+    }
+    
+    marker.bindPopup('<strong>Lokasi Kegiatan</strong><br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6));
+    map.setView([lat, lng], 15);
+  }
+  
+  showToast('Lokasi berhasil ditandai dan link Google Maps telah diisi!', 'success');
+}
+
+function getCurrentLocation() {
+  const button = event.target.closest('button');
+  const originalText = button.innerHTML;
+  
+  button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Mendapatkan lokasi...</span>';
+  button.disabled = true;
+  
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        setMapLocation(lat, lng, true);
+        
+        button.innerHTML = originalText;
+        button.disabled = false;
+      },
+      function(error) {
+        let errorMessage = 'Gagal mendapatkan lokasi. ';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'Izin lokasi ditolak.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'Informasi lokasi tidak tersedia.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'Timeout mendapatkan lokasi.';
+            break;
+          default:
+            errorMessage += 'Error tidak diketahui.';
+            break;
+        }
+        
+        showToast(errorMessage, 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  } else {
+    showToast('Geolocation tidak didukung browser ini.', 'error');
+    button.innerHTML = originalText;
+    button.disabled = false;
+  }
+}
+
+function clearLocation() {
+  currentLat = null;
+  currentLng = null;
+  
+  document.getElementById('latitude').value = '';
+  document.getElementById('longitude').value = '';
+  document.getElementById('locationDisplay').innerHTML = '';
+  document.getElementById('lokasi_kegiatan').value = '';
+  
+  if (map && marker) {
+    map.removeLayer(marker);
+    marker = null;
+  }
+  
+  const manualLat = document.getElementById('manual-lat');
+  const manualLng = document.getElementById('manual-lng');
+  if (manualLat) manualLat.value = '';
+  if (manualLng) manualLng.value = '';
+  
+  showToast('Pin lokasi dan link Google Maps dihapus', 'info');
+}
+
+function openModal(isEdit = false) {
+  document.getElementById('kegiatanModal').classList.remove('hidden');
+  
+  const statusField = document.getElementById('statusField');
+  if (isEdit) {
+    statusField.classList.remove('hidden');
+  } else {
+    statusField.classList.add('hidden');
+  }
+  
+  if (!isEdit) {
+    document.getElementById('kegiatanForm').reset();
+    document.getElementById('kegiatan_id').value = '';
+    document.getElementById('modalTitle').textContent = 'Form Kegiatan Perpustakaan Desa';
+    document.getElementById('imagePreview').style.display = 'none';
+    clearLocation();
+    
+    if (editorInstance) {
+      editorInstance.setData('');
+    }
+  }
+  
+  setTimeout(() => {
+    initializeInteractiveMap();
+    
+    if (map) {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    }
+  }, 200);
+}
+
+function closeModal() {
+  document.getElementById('kegiatanModal').classList.add('hidden');
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.add('hidden');
+}
+
+function previewImage(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('imagePreview');
+  
+  if (file) {
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Ukuran file terlalu besar. Maksimal 2MB.', 'error');
+      event.target.value = '';
+      preview.style.display = 'none';
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      showToast('Format file tidak didukung. Gunakan JPG, JPEG, atau PNG.', 'error');
+      event.target.value = '';
+      preview.style.display = 'none';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview">';
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+async function viewDetail(id) {
+  try {
+    const response = await fetch('/admin/kegiatan-perpus/' + id + '/detail');
+    const data = await response.json();
+    
+    if (data.success) {
+      const item = data.data;
+      
+      document.getElementById('detail-tanggal').textContent = new Date(item.tanggal_kegiatan).toLocaleDateString('id-ID');
+      document.getElementById('detail-nama').textContent = item.nama_kegiatan;
+      
+      const deskripsiElement = document.getElementById('detail-deskripsi');
+      deskripsiElement.innerHTML = item.deskripsi_kegiatan;
+      deskripsiElement.classList.add('content-display');
+      
+      document.getElementById('detail-lokasi-text').textContent = item.lokasi_kegiatan || 'Alamat tidak tersedia';
+      
+      const statusElement = document.getElementById('detail-status');
+      const statusClass = item.status === 'active' ? 'status-active' : 'status-archived';
+      const statusText = item.status === 'active' ? 'Aktif' : 'Arsip';
+      statusElement.innerHTML = '<span class="status-badge ' + statusClass + '">' + statusText + '</span>';
+      
+      const mapContainer = document.getElementById('map-container');
+      if (item.latitude && item.longitude) {
+        mapContainer.classList.remove('hidden');
+        document.getElementById('detail-coordinates').textContent = item.latitude + ', ' + item.longitude;
+        
+        const mapsLink = item.lokasi_kegiatan.includes('google.com/maps') ? item.lokasi_kegiatan : ('https://www.google.com/maps?q=' + item.latitude + ',' + item.longitude);
+        const osmLink = 'https://www.openstreetmap.org/?mlat=' + item.latitude + '&mlon=' + item.longitude + '&zoom=15';
+        
+        document.getElementById('detail-maps-link').href = mapsLink;
+        document.getElementById('detail-osm-link').href = osmLink;
+      } else {
+        mapContainer.classList.add('hidden');
+      }
+      
+      const fotoContainer = document.getElementById('detail-foto-container');
+      if (item.foto_kegiatan) {
+        fotoContainer.classList.remove('hidden');
+        document.getElementById('detail-foto').src = '/static/public/kegiatan-perpus/' + item.foto_kegiatan;
+      } else {
+        fotoContainer.classList.add('hidden');
+      }
+      
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+  } catch (error) {
+    showToast('Gagal memuat detail', 'error');
+  }
+}
+
+async function editKegiatan(id) {
+  try {
+    const response = await fetch('/admin/kegiatan-perpus/' + id + '/edit');
+    const data = await response.json();
+    
+    if (data.success) {
+      const item = data.data;
+      
+      document.getElementById('kegiatan_id').value = item.id;
+      document.getElementById('nama_kegiatan').value = item.nama_kegiatan;
+      document.getElementById('tanggal_kegiatan').value = item.tanggal_kegiatan;
+      document.getElementById('status').value = item.status || 'active';
+      
+      document.getElementById('lokasi_kegiatan').value = item.lokasi_kegiatan;
+      
+      if (item.latitude && item.longitude) {
+        setTimeout(() => {
+          setMapLocation(item.latitude, item.longitude, true);
+        }, 300);
+      }
+      
+      if (editorInstance) {
+        let contentForEditing = item.deskripsi_kegiatan;
+        contentForEditing = contentForEditing.replace(/<br>/g, '');
+        editorInstance.setData(contentForEditing);
+      }
+      
+      if (item.foto_kegiatan) {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '<img src="/static/public/kegiatan-perpus/' + item.foto_kegiatan + '" alt="Current Photo">';
+        preview.style.display = 'block';
+      }
+      
+      document.getElementById('modalTitle').textContent = 'Edit Kegiatan Perpustakaan';
+      openModal(true);
+    }
+  } catch (error) {
+    showToast('Gagal memuat data', 'error');
+  }
+}
+
+function deleteKegiatan(id) {
+  if (confirm('Apakah Anda yakin ingin menghapus kegiatan ini?')) {
+    fetch('/admin/kegiatan-perpus/' + id + '/delete', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast('Kegiatan berhasil dihapus', 'success');
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        showToast('Gagal menghapus kegiatan', 'error');
+      }
+    })
+    .catch(error => {
+      showToast('Terjadi kesalahan', 'error');
+    });
+  }
+}
+
+document.getElementById('kegiatanForm').addEventListener('submit', function(e) {
+  if (editorInstance) {
+    const rawData = editorInstance.getData();
+    function processContent(data) {
+      let processed = data.replace(/<\/p>(?!$)/g, '</p><br>');
+      processed = processed.replace(/<\/(h[1-6])>(?!$)/g, '</$1><br>');
+      return processed;
+    }
+    const processedData = processContent(rawData);
+    document.getElementById('deskripsi_kegiatan').value = processedData;
+  }
+  
+  const description = document.getElementById('deskripsi_kegiatan').value.trim();
+  if (!description || description === '<p>&nbsp;</p>' || description === '<br><p>&nbsp;</p>') {
+    e.preventDefault();
+    showToast('Deskripsi kegiatan tidak boleh kosong', 'error');
+    return false;
+  }
+  
+  const lokasi = document.getElementById('lokasi_kegiatan').value.trim();
+  if (!lokasi) {
+    e.preventDefault();
+    showToast('Lokasi kegiatan harus diisi. Gunakan GPS atau klik pada peta untuk menandai lokasi.', 'error');
+    return false;
+  }
+});
+
+window.onclick = function(event) {
+  const modal = document.getElementById('kegiatanModal');
+  if (event.target == modal) {
+    closeModal();
+  }
+}
+</script>
+{% endblock %}

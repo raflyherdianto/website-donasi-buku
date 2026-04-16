@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Admin Perpustakaan Desa</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
+    <style>
+        /* DataTables Pagination Styling */
+        .dataTables_paginate .paginate_button {
+            padding: 6px 10px !important;
+            margin: 0 2px !important;
+            border-radius: 4px !important;
+            border: 1px solid #d1d5db !important;
+            background: white !important;
+            color: #374151 !important;
+            font-weight: 500;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 32px !important;
+            height: 32px !important;
+            font-size: 14px !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        .dataTables_paginate .paginate_button:hover:not(.disabled):not(.current) {
+            background: #f3f4f6 !important;
+            border-color: #9ca3af !important;
+            transform: translateY(-1px);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .dataTables_paginate .paginate_button.current {
+            background: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+            color: white !important;
+            box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+            font-weight: 600 !important;
+        }
+        
+        .dataTables_paginate .paginate_button.current:hover {
+            background: #2563eb !important;
+            border-color: #2563eb !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+        }
+        
+        .dataTables_paginate .paginate_button.disabled {
+            opacity: 0.4 !important;
+            cursor: not-allowed !important;
+            background: #f9fafb !important;
+            color: #9ca3af !important;
+        }
+        
+        .dataTables_paginate .paginate_button.disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+<body class="p-6 font-sans">
+    <h1 class="text-xl font-bold mb-4">📚 Daftar Admin Perpustakaan Desa</h1>
+
+    <table id="adminTable" class="w-full border border-gray-300">
+        <thead>
+            <tr class="bg-gray-100">
+                <th class="p-2 border">No</th>
+                <th class="p-2 border">Nama Perpustakaan</th>
+                <th class="p-2 border">Desa</th>
+                <th class="p-2 border">Kecamatan</th>
+                <th class="p-2 border">Username</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for admin in data_admin %}
+            <tr>
+                <td class="p-2 border">{{ loop.index }}</td>
+                <td class="p-2 border">{{ admin.nama_perpus }}</td>
+                <td class="p-2 border">{{ admin.desa }}</td>
+                <td class="p-2 border">{{ admin.kecamatan }}</td>
+                <td class="p-2 border">{{ admin.username }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('#adminTable').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+            },
+            drawCallback: function() {
+                setTimeout(() => {
+                    customizePagination();
+                }, 50);
+            },
+            initComplete: function() {
+                customizePagination();
+            }
+        });
+    });
+
+    function customizePagination() {
+        const prevButton = $('.dataTables_paginate .paginate_button.previous');
+        const nextButton = $('.dataTables_paginate .paginate_button.next');
+        
+        if (prevButton.length && !prevButton.find('i').length) {
+            prevButton.html('<i class="fa-solid fa-chevron-left"></i>');
+        }
+        
+        if (nextButton.length && !nextButton.find('i').length) {
+            nextButton.html('<i class="fa-solid fa-chevron-right"></i>');
+        }
+    }
+    </script>
+</body>
+</html>

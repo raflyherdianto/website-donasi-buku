@@ -1,0 +1,208 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/content_wrapper.html" import page_header, card %}
+
+{% block title %}Analytics Kunjungan{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Analytics Kunjungan Perpustakaan", "Analisis data kunjungan perpustakaan berdasarkan bulan dan tahun") }}
+
+<!-- Year Selector and Summary -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+    <h3 class="text-xl font-semibold text-blue-700 mb-4 md:mb-0">Filter Tahun</h3>
+    <div class="flex items-center space-x-4">
+      <select id="yearSelector" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        {% for year in available_years %}
+        <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+      </select>
+      <div class="text-right">
+        <div class="text-sm text-gray-500">Total Kunjungan</div>
+        <div id="totalVisits" class="text-2xl font-bold text-blue-700">0</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Loading indicator -->
+  <div id="loadingIndicator" class="text-center py-4 hidden">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+    <p class="mt-2 text-gray-600">Memuat data...</p>
+  </div>
+</div>
+
+<!-- Bar Chart -->
+<div class="bg-white p-6 rounded-lg shadow-md">
+  <h3 class="text-xl font-semibold text-blue-700 mb-4">Grafik Kunjungan Bulanan</h3>
+  <div class="relative h-96">
+    <canvas id="yearlyChart"></canvas>
+  </div>
+</div>
+
+<!-- Toast notification for errors -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let yearlyChart = null;
+const perpusId = {{ perpus_id if perpus_id else 'null' }};
+
+// Toast notification function
+function showToast(message, type = 'error', duration = 4000) {
+  let toastContainer = document.getElementById('toast-container');
+  
+  const toast = document.createElement('div');
+  const typeClasses = {
+    'success': 'bg-green-500 text-white',
+    'error': 'bg-red-500 text-white',
+    'warning': 'bg-yellow-500 text-white',
+    'info': 'bg-blue-500 text-white'
+  };
+  
+  toast.className = `${typeClasses[type]} px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full opacity-0 max-w-sm`;
+  toast.innerHTML = `
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-medium">${message}</span>
+      <button onclick="closeToast(this)" class="ml-4 text-white hover:text-gray-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  toastContainer.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.remove('translate-x-full', 'opacity-0');
+  }, 100);
+  
+  setTimeout(() => {
+    closeToast(toast.querySelector('button'));
+  }, duration);
+}
+
+function closeToast(button) {
+  const toast = button.closest('div').parentElement;
+  toast.classList.add('translate-x-full', 'opacity-0');
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 300);
+}
+
+// Initialize bar chart
+function initializeCharts() {
+  const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
+  yearlyChart = new Chart(yearlyCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+      datasets: [{
+        label: 'Jumlah Kunjungan',
+        data: new Array(12).fill(0),
+        backgroundColor: '#3B82F6',
+        borderColor: '#1D4ED8',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `Kunjungan: ${context.parsed.y} orang`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            callback: function(value) {
+              return value + ' orang';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Load data for specific year
+async function loadYearData(year) {
+  if (!perpusId) {
+    showToast('Data perpustakaan tidak ditemukan', 'error');
+    return;
+  }
+  
+  document.getElementById('loadingIndicator').classList.remove('hidden');
+  
+  try {
+    const response = await fetch(`/admin/api/kunjungan-data/${year}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    // Update total visits
+    document.getElementById('totalVisits').textContent = data.total;
+    
+    // Update yearly chart
+    const monthlyCount = data.data.map(d => d.count);
+    yearlyChart.data.datasets[0].data = monthlyCount;
+    yearlyChart.update();
+    
+    console.log('Data loaded successfully:', data);
+    
+  } catch (error) {
+    console.error('Error loading data:', error);
+    showToast('Gagal memuat data: ' + error.message, 'error');
+    
+    // Reset to zero data on error
+    document.getElementById('totalVisits').textContent = '0';
+    yearlyChart.data.datasets[0].data = new Array(12).fill(0);
+    yearlyChart.update();
+  } finally {
+    document.getElementById('loadingIndicator').classList.add('hidden');
+  }
+}
+
+// Year selector change handler
+document.getElementById('yearSelector').addEventListener('change', function() {
+  const selectedYear = this.value;
+  loadYearData(selectedYear);
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Initializing charts...');
+  console.log('Perpus ID:', perpusId);
+  
+  initializeCharts();
+  const currentYear = document.getElementById('yearSelector').value;
+  console.log('Loading data for year:', currentYear);
+  loadYearData(currentYear);
+});
+</script>
+{% endblock %}

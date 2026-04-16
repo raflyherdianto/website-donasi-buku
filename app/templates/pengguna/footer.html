@@ -1,0 +1,61 @@
+<footer class="bg-blue-800 text-white py-8 mt-16">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Logo dan Deskripsi -->
+            <div class="space-y-4">
+                <div class="flex items-center space-x-3">
+                    <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Logo Kabupaten Lumajang" class="w-8 h-10">
+                    <span class="text-lg font-bold">Kabupaten Lumajang</span>
+                </div>
+                <p class="text-blue-200 text-sm">
+                    Platform donasi buku untuk perpustakaan desa se-Kabupaten Lumajang. 
+                    Bersama membangun literasi di seluruh pelosok desa.
+                </p>
+            </div>
+
+            <!-- Menu Cepat -->
+            <div class="space-y-4">
+                <h4 class="text-lg font-semibold">Menu Cepat</h4>
+                <div class="space-y-2 text-sm">
+                    <a href="{{ url_for('public.home') }}" class="block text-blue-200 hover:text-white transition">Beranda</a>
+                    <a href="{{ url_for('public.perpusdes') }}" class="block text-blue-200 hover:text-white transition">Perpusdes</a>
+                    <a href="{{ url_for('public.panduan_donasi') }}" class="block text-blue-200 hover:text-white transition">Panduan Donasi</a>
+                    <a href="{{ url_for('public.transparansi') }}" class="block text-blue-200 hover:text-white transition">Transparansi</a>
+                </div>
+            </div>
+
+            <!-- Kontak -->
+            <div class="space-y-4">
+                <h4 class="text-lg font-semibold">Kontak Kami</h4>
+                <div class="space-y-2 text-sm text-blue-200">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Kabupaten Lumajang, Jawa Timur</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-envelope"></i>
+                        <span>arsip.perpustakaan@lumajangkab.go.id</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-phone"></i>
+                        <span>0813-1558-8615</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t border-blue-700 mt-8 pt-6">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <p class="text-blue-200 text-sm">
+                    &copy; <span id="current-year"></span> Dinas Kearsipan dan Perpustakaan Kabupaten Lumajang. All rights reserved.
+                </p>
+                <div class="flex space-x-4 text-sm">
+                    <a href="{{ url_for('public.syarat') }}" class="text-blue-200 hover:text-white transition">Syarat & Ketentuan</a>
+                    <span class="text-blue-300">|</span>
+                    <a href="{{ url_for('public.kontak') }}" class="text-blue-200 hover:text-white transition">Kontak</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

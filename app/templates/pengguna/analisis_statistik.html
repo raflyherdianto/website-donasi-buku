@@ -1,0 +1,314 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container %}
+
+{% block title %}Analisis Statistik - Donasi Buku Perpustakaan Desa{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+{% call content_container("7xl", "px-4 sm:px-6 py-10") %}
+    <div class="text-center mb-8 sm:mb-12">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-700 mb-4">Analisis Statistik</h1>
+        <p class="text-gray-600 text-base sm:text-lg">Dashboard analitik sistem donasi buku perpustakaan desa</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
+        <!-- Total Buku Diterima -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <i class="fas fa-book text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-500 font-medium">Total Buku Diterima</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ stats.total_buku_diterima|default(0) }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Buku Tersalurkan -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <i class="fas fa-truck text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm text-gray-500 font-medium">Total Buku Tersalurkan</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ stats.total_buku_tersalurkan|default(0) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grafik Perkembangan Donasi Diterima -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <h3 class="text-xl font-semibold text-green-700 mb-4 sm:mb-0">Perkembangan Donasi Diterima Berdasarkan Subjek</h3>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <select id="donationMonthFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm">
+                    <option value="">Semua Bulan</option>
+                    <option value="1">Januari</option>
+                    <option value="2">Februari</option>
+                    <option value="3">Maret</option>
+                    <option value="4">April</option>
+                    <option value="5">Mei</option>
+                    <option value="6">Juni</option>
+                    <option value="7">Juli</option>
+                    <option value="8">Agustus</option>
+                    <option value="9">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12">Desember</option>
+                </select>
+                <select id="donationYearFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm">
+                    {% for year in available_years %}
+                    <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div id="donationLoadingIndicator" class="text-center py-4 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-700"></div>
+            <p class="mt-2 text-gray-600">Memuat data donasi...</p>
+        </div>
+        
+        <div class="relative h-80">
+            <canvas id="donationChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Grafik Perkembangan Distribusi -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <h3 class="text-xl font-semibold text-purple-700 mb-4 sm:mb-0">Perkembangan Distribusi Buku ke Perpusdes</h3>
+            <select id="distributionYearFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm">
+                {% for year in available_years %}
+                <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div id="distributionLoadingIndicator" class="text-center py-4 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
+            <p class="mt-2 text-gray-600">Memuat data distribusi...</p>
+        </div>
+        
+        <div class="relative h-80">
+            <canvas id="distributionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Top Subjects -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h4 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Subjek Buku Terpopuler</h4>
+            <div class="space-y-3">
+                {% for subjek in top_subjects %}
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                    <span class="font-medium">{{ subjek.nama }}</span>
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{{ subjek.total_donasi }} buku</span>
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-4">Belum ada data subjek buku</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Top Libraries -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h4 class="text-lg font-semibold text-gray-800 mb-4">Top 5 Perpusdes Penerima Terbanyak</h4>
+            <div class="space-y-3">
+                {% for perpus in top_libraries %}
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                    <div>
+                        <div class="font-medium">{{ perpus.nama }}</div>
+                        <div class="text-sm text-gray-600">{{ perpus.kecamatan }}</div>
+                    </div>
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">{{ perpus.total_diterima }} buku</span>
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-center py-4">Belum ada data perpustakaan</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endcall %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let donationChart = null;
+let distributionChart = null;
+
+// Initialize charts
+function initializeCharts() {
+    // Donation Chart
+    const donationCtx = document.getElementById('donationChart').getContext('2d');
+    donationChart = new Chart(donationCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Buku Diterima',
+                data: [],
+                backgroundColor: '#10B981',
+                borderColor: '#059669',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Distribution Chart
+    const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+    distributionChart = new Chart(distributionCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+            datasets: [{
+                label: 'Buku Tersalurkan',
+                data: new Array(12).fill(0),
+                backgroundColor: '#8B5CF6',
+                borderColor: '#7C3AED',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Load donation data
+async function loadDonationData() {
+    const year = document.getElementById('donationYearFilter').value;
+    const month = document.getElementById('donationMonthFilter').value;
+    
+    document.getElementById('donationLoadingIndicator').classList.remove('hidden');
+    
+    try {
+        let url = `/api/public/donation-data/${year}`;
+        if (month) {
+            url += `?month=${month}`;
+        }
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Update donation chart
+        const labels = data.data.map(d => d.subjek_nama);
+        const values = data.data.map(d => d.total_jumlah);
+        
+        donationChart.data.labels = labels;
+        donationChart.data.datasets[0].data = values;
+        donationChart.update();
+        
+    } catch (error) {
+        console.error('Error loading donation data:', error);
+        showToast('Gagal memuat data donasi: ' + error.message, 'error');
+        
+        // Reset chart on error
+        donationChart.data.labels = [];
+        donationChart.data.datasets[0].data = [];
+        donationChart.update();
+    } finally {
+        document.getElementById('donationLoadingIndicator').classList.add('hidden');
+    }
+}
+
+// Load distribution data
+async function loadDistributionData() {
+    const year = document.getElementById('distributionYearFilter').value;
+    
+    document.getElementById('distributionLoadingIndicator').classList.remove('hidden');
+    
+    try {
+        const response = await fetch(`/api/public/distribution-data/${year}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Update distribution chart
+        const monthlyCount = data.data.map(d => d.count);
+        distributionChart.data.datasets[0].data = monthlyCount;
+        distributionChart.update();
+        
+    } catch (error) {
+        console.error('Error loading distribution data:', error);
+        showToast('Gagal memuat data distribusi: ' + error.message, 'error');
+        
+        // Reset to zero data on error
+        distributionChart.data.datasets[0].data = new Array(12).fill(0);
+        distributionChart.update();
+    } finally {
+        document.getElementById('distributionLoadingIndicator').classList.add('hidden');
+    }
+}
+
+// Event listeners
+document.getElementById('donationYearFilter').addEventListener('change', loadDonationData);
+document.getElementById('donationMonthFilter').addEventListener('change', loadDonationData);
+document.getElementById('distributionYearFilter').addEventListener('change', loadDistributionData);
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    loadDonationData();
+    loadDistributionData();
+});
+</script>
+{% endblock %}

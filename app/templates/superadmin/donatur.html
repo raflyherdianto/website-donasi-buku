@@ -1,0 +1,427 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% from "superadmin/content_wrapper.html" import page_header, card, data_table %}
+
+{% block title %}Daftar Donatur{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.bootstrap5.min.css">
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+  /* Enhanced DataTables styling - copied from perpusdesa.html */
+  .dataTables_wrapper {
+    font-family: inherit;
+  }
+  
+  .dataTables_length select,
+  .dataTables_filter input {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+    background-color: white !important;
+  }
+  
+  .dataTables_length select:focus,
+  .dataTables_filter input:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  .dataTables_length,
+  .dataTables_filter {
+    margin-bottom: 1rem;
+  }
+  
+  .dataTables_length label,
+  .dataTables_filter label {
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .dataTables_info {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 8px 0;
+  }
+  
+  /* ENHANCED PAGINATION STYLING - Higher specificity */
+  .dataTables_wrapper .dataTables_paginate {
+    margin-top: 16px !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    font-size: 14px !important;
+  }
+  
+  /* Base pagination button styling with maximum specificity */
+  .dataTables_wrapper .dataTables_paginate .paginate_button,
+  .dataTables_wrapper .dataTables_paginate .paginate_button:link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button:visited,
+  .dataTables_wrapper .dataTables_paginate .paginate_button:active {
+    padding: 8px 12px !important;
+    margin: 0 2px !important;
+    border-radius: 6px !important;
+    border: 1px solid #d1d5db !important;
+    background: white !important;
+    background-image: none !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    cursor: pointer !important;
+  }
+  
+  /* Hover state for normal buttons */
+  .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current):not(.disabled) {
+    background: #f8fafc !important;
+    background-image: none !important;
+    border-color: #94a3b8 !important;
+    color: #1e293b !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* CURRENT PAGE BUTTON - Multiple selectors with maximum specificity */
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:visited,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:active,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:focus,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover,
+  .dataTables_wrapper .dataTables_paginate .paginate_button[aria-current="page"],
+  .pagination-active-override {
+    background: #3b82f6 !important;
+    background-image: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    background-color: #3b82f6 !important;
+    border: 1px solid #2563eb !important;
+    border-color: #2563eb !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 3px 12px rgba(59, 130, 246, 0.4) !important;
+    transform: none !important;
+    z-index: 10 !important;
+    position: relative !important;
+  }
+  
+  /* Force current styling with inline styles backup */
+  .force-current-style {
+    background: #3b82f6 !important;
+    background-image: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: 1px solid #2563eb !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 3px 12px rgba(59, 130, 246, 0.4) !important;
+  }
+  
+  /* Disabled buttons styling */
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:visited {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    background: #f9fafb !important;
+    background-image: none !important;
+    border-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Previous/Next button specific styling */
+  .dataTables_wrapper .dataTables_paginate .paginate_button.previous,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.next {
+    background: #f1f5f9 !important;
+    background-image: none !important;
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+    font-weight: 500 !important;
+  }
+  
+  .dataTables_wrapper .dataTables_paginate .paginate_button.previous:hover:not(.disabled),
+  .dataTables_wrapper .dataTables_paginate .paginate_button.next:hover:not(.disabled) {
+    background: #e2e8f0 !important;
+    background-image: none !important;
+    border-color: #94a3b8 !important;
+    color: #334155 !important;
+  }
+  
+  /* Override any conflicting styles */
+  .dataTables_wrapper .dataTables_paginate .ellipsis {
+    padding: 8px 4px !important;
+    color: #9ca3af !important;
+    background: none !important;
+    border: none !important;
+    font-weight: 500 !important;
+  }
+  
+  /* Ensure current page button always stands out */
+  .dataTables_wrapper .dataTables_paginate .paginate_button[aria-current="page"] {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    border-color: #2563eb !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Daftar Donatur", "Daftar semua pengguna yang telah menyumbang buku") }}
+
+{% if data_donatur %}
+    {% call card("Data Donatur") %}
+        <!-- DataTable Container -->
+        <div class="overflow-x-auto">
+            <table id="donaturTable" class="min-w-full text-sm text-gray-700 table-auto">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-medium text-gray-700">No</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-700">Nama Donatur</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-700">Username</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-700">Email</th>
+                        <th class="px-4 py-3 text-center font-medium text-gray-700">Jumlah Subjek</th>
+                        <th class="px-4 py-3 text-center font-medium text-gray-700">Total Buku</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for donor in data_donatur %}
+                    <tr class="border-b hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3">{{ loop.index }}</td>
+                        <td class="px-4 py-3 font-medium">{{ donor.full_name }}</td>
+                        <td class="px-4 py-3">{{ donor.username }}</td>
+                        <td class="px-4 py-3">{{ donor.email }}</td>
+                        <td class="px-4 py-3 text-center">{{ donor.jumlah_subjek or 0 }}</td>
+                        <td class="px-4 py-3 text-center">{{ donor.total_books or 0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endcall %}
+{% else %}
+    {% call card() %}
+        <div class="text-center py-8">
+            <i class="fas fa-users text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-600 mb-2">Belum Ada Data Donatur</h3>
+            <p class="text-gray-500">Belum ada pengguna yang melakukan donasi buku.</p>
+        </div>
+    {% endcall %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize DataTables with proper configuration - copied from perpusdesa.html
+    var table = $('#donaturTable').DataTable({
+        responsive: true,
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json',
+            lengthMenu: "Tampilkan _MENU_ entri",
+            search: "Cari:",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+            infoEmpty: "Menampilkan 0 sampai 0 dari 0 entri",
+            infoFiltered: "(disaring dari _MAX_ total entri)",
+            emptyTable: "Tidak ada data yang tersedia dalam tabel",
+            zeroRecords: "Tidak ada catatan yang cocok ditemukan",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: '<i class="fa-solid fa-chevron-right"></i>',
+                previous: '<i class="fa-solid fa-chevron-left"></i>'
+            }
+        },
+        columnDefs: [
+            { 
+                orderable: false, 
+                targets: [0],
+                className: "text-center"
+            },
+            {
+                className: "text-center",
+                targets: [0, 4, 5]
+            }
+        ],
+        order: [[1, 'asc']], // Sort by Name column
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+        dom: '<"flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4"<"flex-1"l><"flex-1 lg:text-right"f>>rtip',
+        drawCallback: function() {
+            // Apply custom styling after each draw
+            applyPaginationStyling();
+        },
+        initComplete: function() {
+            // Custom styling for length and search inputs
+            $('.dataTables_length select').addClass('border-2 focus:border-blue-500');
+            $('.dataTables_filter input').addClass('border-2 focus:border-blue-500').attr('placeholder', 'Masukkan kata kunci...');
+            
+            // Apply initial pagination styling
+            setTimeout(applyPaginationStyling, 100);
+        }
+    });
+    
+    // Handle pagination clicks with styling
+    $(document).on('click', '.dataTables_paginate .paginate_button', function() {
+        setTimeout(applyPaginationStyling, 50);
+    });
+    
+    // Apply styling on page changes
+    table.on('page.dt', function() {
+        setTimeout(applyPaginationStyling, 50);
+    });
+});
+
+// Enhanced pagination styling function - copied from perpusdesa.html
+function applyPaginationStyling() {
+    // Remove any previous forced classes
+    $('.dataTables_paginate .paginate_button').removeClass('pagination-active-override force-current-style');
+    
+    // Reset all button styles first
+    $('.dataTables_paginate .paginate_button').each(function() {
+        var $btn = $(this);
+        if (!$btn.hasClass('current') && !$btn.hasClass('previous') && !$btn.hasClass('next') && !$btn.hasClass('disabled')) {
+            $btn.css({
+                'background': 'white',
+                'background-image': 'none',
+                'border': '1px solid #d1d5db',
+                'color': '#374151',
+                'font-weight': '500'
+            });
+        }
+    });
+    
+    // Find and style current page button using multiple methods
+    var currentButtons = $('.dataTables_paginate .paginate_button.current, .dataTables_paginate .paginate_button[aria-current="page"]');
+    
+    if (currentButtons.length === 0) {
+        // Fallback: find by checking button text against current page info
+        var info = $('.dataTables_info').text();
+        var matches = info.match(/(\d+)\s+sampai\s+(\d+)\s+dari\s+(\d+)/);
+        if (matches) {
+            var startRow = parseInt(matches[1]);
+            var pageSize = 10; // Adjust based on your page size
+            var currentPage = Math.ceil(startRow / pageSize);
+            
+            $('.dataTables_paginate .paginate_button').each(function() {
+                var $btn = $(this);
+                var btnText = $btn.text().trim();
+                if (btnText == currentPage.toString()) {
+                    currentButtons = currentButtons.add($btn);
+                }
+            });
+        }
+    }
+    
+    // Apply current page styling
+    currentButtons.each(function() {
+        var $btn = $(this);
+        
+        // Add multiple classes for better override
+        $btn.addClass('pagination-active-override force-current-style current');
+        
+        // Apply inline styles as ultimate fallback
+        $btn.css({
+            'background': '#3b82f6',
+            'background-image': 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+            'background-color': '#3b82f6',
+            'border': '1px solid #2563eb',
+            'border-color': '#2563eb',
+            'color': 'white',
+            'font-weight': '600',
+            'box-shadow': '0 3px 12px rgba(59, 130, 246, 0.4)',
+            'z-index': '10',
+            'position': 'relative'
+        });
+        
+        // Set attributes
+        $btn.attr('aria-current', 'page');
+        $btn.attr('data-current', 'true');
+    });
+    
+    // Ensure Previous/Next button styling
+    customizePagination();
+}
+
+// Custom pagination text and icons
+function customizePagination() {
+    const prevButton = $('.dataTables_paginate .paginate_button.previous');
+    const nextButton = $('.dataTables_paginate .paginate_button.next');
+    
+    if (prevButton.length && !prevButton.find('i').length) {
+        prevButton.html('<i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya');
+    }
+    
+    if (nextButton.length && !nextButton.find('i').length) {
+        nextButton.html('Selanjutnya <i class="fa-solid fa-chevron-right ml-1"></i>');
+    }
+}
+
+// Enhanced observer for pagination changes
+var paginationObserver = new MutationObserver(function(mutations) {
+    var shouldUpdate = false;
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList' || 
+           (mutation.type === 'attributes' && 
+            (mutation.attributeName === 'class' || mutation.attributeName === 'aria-current'))) {
+            shouldUpdate = true;
+        }
+    });
+    
+    if (shouldUpdate) {
+        setTimeout(applyPaginationStyling, 50);
+    }
+});
+
+// Start observing pagination with enhanced options
+$(document).ready(function() {
+    setTimeout(function() {
+        var paginationContainer = document.querySelector('.dataTables_paginate');
+        if (paginationContainer) {
+            paginationObserver.observe(paginationContainer, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class', 'aria-current', 'style']
+            });
+        }
+        
+        // Also observe the wrapper for complete redraws
+        var wrapperContainer = document.querySelector('.dataTables_wrapper');
+        if (wrapperContainer) {
+            paginationObserver.observe(wrapperContainer, {
+                childList: true,
+                subtree: true
+            });
+        }
+    }, 500);
+});
+
+// Force styling on window load and focus
+$(window).on('load focus', function() {
+    setTimeout(applyPaginationStyling, 100);
+});
+</script>
+{% endblock %}

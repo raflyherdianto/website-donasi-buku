@@ -1,0 +1,238 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #e0f2fe;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #333;
+    padding: 0.5rem 1rem;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #007bff;
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+}
+
+.hero-section .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.hero-section h1 {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.hero-section p {
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.hero-section button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.hero-section button:hover {
+    background-color: #0056b3;
+}
+
+/* News Section */
+.news-section {
+    background-color: #f0f8ff;
+}
+
+.news-section h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.news-section img {
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.news-section img:hover {
+    transform: scale(1.05);
+}
+
+.news-section a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.news-section a:hover {
+    color: #007bff;
+}
+
+/* News Cards Styling */
+.news-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.news-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-8px);
+}
+
+.news-card img {
+    width: 100%;
+    height: 192px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.news-card:hover img {
+    transform: scale(1.05);
+}
+
+.news-card h1 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    transition: color 0.2s ease;
+}
+
+.news-card:hover h1 {
+    color: #2563eb;
+}
+
+.news-card .author-date {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.news-card .author-date i {
+    margin-right: 0.5rem;
+}
+
+.news-card p {
+    color: #4b5563;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.news-card .read-more {
+    color: #2563eb;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.news-card .read-more:hover {
+    color: #1d4ed8;
+}
+
+/* Line clamp utility for text truncation */
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .news-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .news-card h1 {
+        font-size: 1.125rem;
+    }
+}
+
+/* News Detail Page Styling */
+.news-detail-container {
+    max-width: 4xl;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.news-detail-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.news-detail-meta {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.news-detail-content {
+    line-height: 1.8;
+    color: #374151;
+}
+
+.news-detail-content p {
+    margin-bottom: 1.5rem;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+    margin-bottom: 2rem;
+}
+
+.back-button:hover {
+    background-color: #e5e7eb;
+}
+
+.back-button i {
+    margin-right: 0.5rem;
+}

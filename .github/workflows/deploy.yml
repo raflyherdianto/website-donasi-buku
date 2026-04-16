@@ -1,0 +1,50 @@
+name: Deploy to EC2 t4g.medium
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Executing SSH Deployment Script
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          echo "Starting Deploy to EC2 t4g.medium..."
+          
+          # 1. Pastikan folder sudah ada, jika tidak lakukan Git Clone
+          if [ ! -d "~/website_donasi_buku" ]; then
+            git clone https://github.com/raflyherdianto/website-donasi-buku.git ~/website_donasi_buku
+          fi
+          
+          # 2. Masuk ke direktori project
+          cd ~/website_donasi_buku
+          
+          # 3. Update kode terbaru dari branch main
+          git fetch origin main
+          git reset --hard origin/main
+          
+          # 4. Pastikan docker shared-network tersedia
+          docker network ls | grep shared-network || docker network create shared-network
+          
+          # 5. Build ulang Container untuk arsitektur ARM64 langsung di server
+          # Note: Build docker compose dilakukan di server t4g.medium (Graviton2) 
+          # agar image dikompilasi secara Native dalam arsitektur linux/arm64
+          docker compose build --no-cache
+          
+          # 6. Restart container menggunakan Docker Compose
+          docker compose up -d
+          
+          # 7. Jalankan Migrasi Database dan Seed Data Awal
+          # (Berlaku baik untuk DB eksternal maupun SQLite bawaan)
+          echo "Menjalankan migrasi database..."
+          docker compose exec -T web flask db upgrade
+          docker compose exec -T web python setup.py

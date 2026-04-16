@@ -1,0 +1,86 @@
+<style>
+.subjek-row {
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+}
+
+.subjek-row:hover {
+    background: #f4f4f5;
+}
+
+.donasi-container label:hover {
+    background-color: #f3f4f6;
+}
+
+.validation-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 1px #ef4444 !important;
+}
+
+.success-border {
+    border-color: #10b981 !important;
+}
+
+/* Read-only field styling */
+.field-readonly {
+    background-color: #f9fafb !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+    opacity: 0.8;
+}
+</style>
+
+<div class="space-y-6">
+    <!-- Form Section -->
+    <div class="space-y-4">
+        <!-- Perpustakaan Selection with Simple Dropdown -->
+        <div>
+            <label for="perpus_id" class="block text-sm font-medium text-gray-700 mb-2">
+                Pilih Perpustakaan <span class="text-red-500">*</span>
+            </label>
+            <select id="perpus_id" name="perpus_id" required
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">-- Pilih Perpustakaan --</option>
+                {% for perpus in perpus_list %}
+                <option value="{{ perpus.id }}">{{ perpus.nama }} - {{ perpus.desa }}, {{ perpus.kecamatan }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Subjek Selection -->
+        <div>
+            <label for="subjek_selection" class="block text-sm font-medium text-gray-700 mb-2">
+                Pilih Subjek Buku <span class="text-red-500">*</span>
+            </label>
+            <div id="subjek_container">
+                <!-- Dynamic subjek selection will be loaded here -->
+            </div>
+            <button type="button" id="addSubjekButton"
+                    class="mt-2 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm">
+                <i class="fas fa-plus mr-1"></i>Tambah Subjek
+            </button>
+        </div>
+
+        <!-- Status Selection - Read Only -->
+        <div>
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+                Status Distribusi
+            </label>
+            <select id="status" name="status" disabled
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 field-readonly">
+                <option value="pengiriman" selected>Dalam Pengiriman</option>
+            </select>
+            <p class="text-xs text-blue-600 mt-1">
+                <i class="fas fa-info-circle mr-1"></i>Status distribusi baru otomatis diatur sebagai "Dalam Pengiriman"
+            </p>
+            <!-- Hidden input to ensure the value is submitted -->
+            <input type="hidden" name="status" value="pengiriman">
+        </div>
+
+        <!-- Distribution Summary -->
+        <div id="distributionSummary" class="hidden mt-4 p-4 bg-gray-50 rounded-md">
+            <h4 class="font-medium text-gray-700 mb-2">Ringkasan Distribusi:</h4>
+            <div id="summaryContent"></div>
+        </div>
+    </div>
+</div>

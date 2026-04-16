@@ -1,0 +1,1048 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% from "superadmin/content_wrapper.html" import page_header, card, data_table, action_button %}
+
+{% block title %}Kelola Subjek Buku{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.bootstrap5.min.css">
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .action-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+  }
+  
+  .action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .action-btn-edit {
+    background-color: #f59e0b;
+    color: white;
+  }
+  
+  .action-btn-edit:hover {
+    background-color: #d97706;
+    color: white;
+  }
+  
+  .action-btn-delete {
+    background-color: #ef4444;
+    color: white;
+  }
+  
+  .action-btn-delete:hover {
+    background-color: #dc2626;
+    color: white;
+  }
+  
+  @media (max-width: 768px) {
+    .action-buttons {
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .action-btn {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 6px;
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+    
+    .action-btn span {
+      display: inline;
+    }
+  }
+  
+  @media (min-width: 769px) {
+    .action-btn span {
+      display: none;
+    }
+  }
+
+  /* Status Cards Slider Styles */
+  .status-cards-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+  
+  .status-cards-wrapper {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+    padding: 0.25rem 0;
+  }
+  
+  .status-cards-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .status-cards-grid {
+    display: flex;
+    gap: 0.75rem;
+    min-width: max-content;
+    padding: 0.25rem 0;
+  }
+  
+  .status-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e5e7eb;
+    min-width: 160px;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .status-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-color);
+  }
+  
+  .status-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .status-card.total {
+    --card-color: #6366f1;
+  }
+  
+  .status-card.active {
+    --card-color: #10b981;
+  }
+  
+  .status-card.recent {
+    --card-color: #f59e0b;
+  }
+  
+  .status-card-header {
+    display: flex;
+    items-center;
+    justify-content: between;
+    margin-bottom: 0.5rem;
+  }
+  
+  .status-card-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: white;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+  }
+  
+  .status-card.total .status-card-icon {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+  }
+  
+  .status-card.active .status-card-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+  
+  .status-card.recent .status-card-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+  }
+  
+  .status-card-content {
+    flex: 1;
+  }
+  
+  .status-card-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 0.125rem;
+  }
+  
+  .status-card-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+    margin-bottom: 0.125rem;
+  }
+  
+  .status-card-subtitle {
+    font-size: 0.6875rem;
+    color: #9ca3af;
+    font-weight: 500;
+  }
+  
+  .status-card-trend {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.6875rem;
+    color: var(--card-color);
+    font-weight: 600;
+  }
+  
+  /* Scroll Indicators */
+  .scroll-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2rem;
+    height: 2rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .scroll-indicator:hover {
+    background: #f3f4f6;
+    transform: translateY(-50%) scale(1.05);
+  }
+  
+  .scroll-indicator.left {
+    left: -1rem;
+  }
+  
+  .scroll-indicator.right {
+    right: -1rem;
+  }
+  
+  .status-cards-container:hover .scroll-indicator {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  /* Responsive Design */
+  @media (min-width: 768px) {
+    .status-cards-grid {
+      justify-content: center;
+    }
+    
+    .status-card {
+      min-width: 180px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .status-cards-grid {
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    
+    .status-card {
+      flex: 1;
+      max-width: 200px;
+      min-width: 180px;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .status-card {
+      min-width: 140px;
+      padding: 0.875rem;
+    }
+    
+    .status-card-number {
+      font-size: 1.375rem;
+    }
+    
+    .status-card-icon {
+      width: 2rem;
+      height: 2rem;
+      font-size: 0.875rem;
+      margin-right: 0.5rem;
+    }
+    
+    .status-card-title {
+      font-size: 0.6875rem;
+    }
+    
+    .status-card-subtitle {
+      font-size: 0.625rem;
+    }
+  }
+  
+  /* Enhanced DataTables styling */
+  .dataTables_wrapper {
+    font-family: inherit;
+  }
+  
+  .dataTables_length select,
+  .dataTables_filter input {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+    background-color: white !important;
+  }
+  
+  .dataTables_length select:focus,
+  .dataTables_filter input:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  .dataTables_length,
+  .dataTables_filter {
+    margin-bottom: 1rem;
+  }
+  
+  .dataTables_length label,
+  .dataTables_filter label {
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .dataTables_info {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 8px 0;
+  }
+  
+  /* ENHANCED PAGINATION STYLING - Higher specificity */
+  .dataTables_wrapper .dataTables_paginate {
+    margin-top: 16px !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    font-size: 14px !important;
+  }
+  
+  /* Base pagination button styling with maximum specificity */
+  .dataTables_wrapper .dataTables_paginate .paginate_button,
+  .dataTables_wrapper .dataTables_paginate .paginate_button:link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button:visited,
+  .dataTables_wrapper .dataTables_paginate .paginate_button:active {
+    padding: 8px 12px !important;
+    margin: 0 2px !important;
+    border-radius: 6px !important;
+    border: 1px solid #d1d5db !important;
+    background: white !important;
+    background-image: none !important;
+    color: #374151 !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 40px !important;
+    height: 40px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    cursor: pointer !important;
+  }
+  
+  /* Hover state for normal buttons */
+  .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current):not(.disabled) {
+    background: #f8fafc !important;
+    background-image: none !important;
+    border-color: #94a3b8 !important;
+    color: #1e293b !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* CURRENT PAGE BUTTON - Multiple selectors with maximum specificity */
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:visited,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:active,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:focus,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover,
+  .dataTables_wrapper .dataTables_paginate .paginate_button[aria-current="page"],
+  .pagination-active-override {
+    background: #3b82f6 !important;
+    background-image: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    background-color: #3b82f6 !important;
+    border: 1px solid #2563eb !important;
+    border-color: #2563eb !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 3px 12px rgba(59, 130, 246, 0.4) !important;
+    transform: none !important;
+    z-index: 10 !important;
+    position: relative !important;
+  }
+  
+  /* Force current styling with inline styles backup */
+  .force-current-style {
+    background: #3b82f6 !important;
+    background-image: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: 1px solid #2563eb !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 3px 12px rgba(59, 130, 246, 0.4) !important;
+  }
+  
+  /* Disabled buttons styling */
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:link,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:visited {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    background: #f9fafb !important;
+    background-image: none !important;
+    border-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Previous/Next button specific styling */
+  .dataTables_wrapper .dataTables_paginate .paginate_button.previous,
+  .dataTables_wrapper .dataTables_paginate .paginate_button.next {
+    background: #f1f5f9 !important;
+    background-image: none !important;
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+    font-weight: 500 !important;
+  }
+  
+  .dataTables_wrapper .dataTables_paginate .paginate_button.previous:hover:not(.disabled),
+  .dataTables_wrapper .dataTables_paginate .paginate_button.next:hover:not(.disabled) {
+    background: #e2e8f0 !important;
+    background-image: none !important;
+    border-color: #94a3b8 !important;
+    color: #334155 !important;
+  }
+  
+  /* Override any conflicting styles */
+  .dataTables_wrapper .dataTables_paginate .ellipsis {
+    padding: 8px 4px !important;
+    color: #9ca3af !important;
+    background: none !important;
+    border: none !important;
+    font-weight: 500 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Kelola Subjek Buku", "Kelola kategori dan subjek buku yang tersedia dalam sistem.") }}
+
+<!-- Status Cards Section -->
+<div class="status-cards-container">
+  <div class="scroll-indicator left" onclick="scrollCards('left')">
+    <i class="fas fa-chevron-left text-gray-600"></i>
+  </div>
+  
+  <div class="status-cards-wrapper" id="statusCardsWrapper">
+    <div class="status-cards-grid">
+      <!-- Total Subjek Card -->
+      <div class="status-card total">
+        <div class="status-card-trend">
+          <i class="fas fa-tags"></i>
+        </div>
+        <div class="status-card-header">
+          <div class="status-card-icon">
+            <i class="fas fa-list-alt"></i>
+          </div>
+          <div class="status-card-content">
+            <div class="status-card-title">Total Subjek</div>
+            <div class="status-card-number">{{ subjek_list|length if subjek_list else 0 }}</div>
+            <div class="status-card-subtitle">Kategori Buku</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="scroll-indicator right" onclick="scrollCards('right')">
+    <i class="fas fa-chevron-right text-gray-600"></i>
+  </div>
+</div>
+
+<!-- Tombol Tambah Data -->
+<div class="mb-6">
+    {{ action_button("Tambah Subjek Buku", onclick="showCreateModal()", icon="fas fa-plus", type="primary") }}
+</div>
+
+{% if subjek_list %}
+    {% call card("Data Subjek Buku") %}
+        <!-- DataTable Container -->
+        <div class="overflow-x-auto">
+            <table id="subjekTable" class="min-w-full text-sm text-gray-700 table-auto">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-medium text-gray-700">No</th>
+                        <th class="px-4 py-3 text-left font-medium text-gray-700">Nama Subjek</th>
+                        <th class="px-4 py-3 text-center font-medium text-gray-700">Tanggal Dibuat</th>
+                        <th class="px-4 py-3 text-center font-medium text-gray-700">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subjek in subjek_list %}
+                    <tr class="border-b hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3">{{ loop.index }}</td>
+                        <td class="px-4 py-3 font-medium">{{ subjek.nama }}</td>
+                        <td class="px-4 py-3 text-center">{{ subjek.created_at.strftime('%d/%m/%Y') }}</td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="action-buttons">
+                                <button onclick="showEditModal({{ subjek.id }})" 
+                                        class="action-btn action-btn-edit"
+                                        title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Edit</span>
+                                </button>
+                                <button onclick="showDeleteModal({{ subjek.id }}, '{{ subjek.nama }}')" 
+                                        class="action-btn action-btn-delete"
+                                        title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Hapus</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endcall %}
+{% else %}
+    {% call card() %}
+        <div class="text-center py-8">
+            <i class="fas fa-tags text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-600 mb-2">Belum Ada Data Subjek Buku</h3>
+            <p class="text-gray-500">Silakan tambahkan subjek buku melalui tombol "Tambah Subjek Buku".</p>
+        </div>
+    {% endcall %}
+{% endif %}
+
+<!-- Modal Create -->
+<div id="createModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Tambah Subjek Buku Baru</h3>
+                <button type="button" onclick="closeModal('createModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <form id="createForm" method="POST" action="{{ url_for('superadmin.tambah_subjek') }}">
+                <div class="space-y-4">
+                    <div>
+                        <label for="nama_subjek" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nama Subjek <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="nama_subjek" name="nama_subjek" required
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Masukkan nama subjek buku">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal('createModal')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                        Batal
+                    </button>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                        Simpan Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit -->
+<div id="editModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Edit Subjek Buku</h3>
+                <button type="button" onclick="closeModal('editModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <form id="editForm" method="POST">
+                <div class="space-y-4">
+                    <div>
+                        <label for="edit_nama_subjek" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nama Subjek <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="edit_nama_subjek" name="nama_subjek" required
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Masukkan nama subjek buku">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeModal('editModal')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                        Batal
+                    </button>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Delete -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/3 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Hapus</h3>
+            <p class="text-sm text-gray-500 mb-4">
+                Apakah Anda yakin ingin menghapus subjek "<span id="deleteSubjekName" class="font-semibold"></span>"?
+            </p>
+            <p class="text-xs text-red-600 mb-6">Tindakan ini tidak dapat dibatalkan!</p>
+            <div class="flex justify-center space-x-3">
+                <button type="button" onclick="closeModal('deleteModal')" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    Batal
+                </button>
+                <button type="button" id="confirmDeleteBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Ya, Hapus
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize DataTables with proper configuration
+    var table = $('#subjekTable').DataTable({
+        responsive: true,
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json',
+            lengthMenu: "Tampilkan _MENU_ entri",
+            search: "Cari:",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+            infoEmpty: "Menampilkan 0 sampai 0 dari 0 entri",
+            infoFiltered: "(disaring dari _MAX_ total entri)",
+            emptyTable: "Tidak ada data yang tersedia dalam tabel",
+            zeroRecords: "Tidak ada catatan yang cocok ditemukan",
+            paginate: {
+                first: "Pertama",
+                last: "Terakhir",
+                next: '<i class="fa-solid fa-chevron-right"></i>',
+                previous: '<i class="fa-solid fa-chevron-left"></i>'
+            }
+        },
+        columnDefs: [
+            { 
+                orderable: false, 
+                targets: [0, 3],
+                className: "text-center"
+            },
+            {
+                className: "text-center",
+                targets: [0, 2, 3]
+            }
+        ],
+        order: [[0, 'asc']], // Sort by No column (sequential numbers)
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+        dom: '<"flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4"<"flex-1"l><"flex-1 lg:text-right"f>>rtip',
+        drawCallback: function() {
+            // Apply custom styling after each draw
+            applyPaginationStyling();
+        },
+        initComplete: function() {
+            // Custom styling for length and search inputs
+            $('.dataTables_length select').addClass('border-2 focus:border-blue-500');
+            $('.dataTables_filter input').addClass('border-2 focus:border-blue-500').attr('placeholder', 'Masukkan kata kunci...');
+            
+            // Apply initial pagination styling
+            setTimeout(applyPaginationStyling, 100);
+        }
+    });
+    
+    // Handle pagination clicks with styling
+    $(document).on('click', '.dataTables_paginate .paginate_button', function() {
+        setTimeout(applyPaginationStyling, 50);
+    });
+    
+    // Apply styling on page changes
+    table.on('page.dt', function() {
+        setTimeout(applyPaginationStyling, 50);
+    });
+});
+
+// Enhanced pagination styling function
+function applyPaginationStyling() {
+    // Remove any previous forced classes
+    $('.dataTables_paginate .paginate_button').removeClass('pagination-active-override force-current-style');
+    
+    // Reset all button styles first
+    $('.dataTables_paginate .paginate_button').each(function() {
+        var $btn = $(this);
+        if (!$btn.hasClass('current') && !$btn.hasClass('previous') && !$btn.hasClass('next') && !$btn.hasClass('disabled')) {
+            $btn.css({
+                'background': 'white',
+                'background-image': 'none',
+                'border': '1px solid #d1d5db',
+                'color': '#374151',
+                'font-weight': '500'
+            });
+        }
+    });
+    
+    // Find and style current page button using multiple methods
+    var currentButtons = $('.dataTables_paginate .paginate_button.current, .dataTables_paginate .paginate_button[aria-current="page"]');
+    
+    if (currentButtons.length === 0) {
+        // Fallback: find by checking button text against current page info
+        var info = $('.dataTables_info').text();
+        var matches = info.match(/(\d+)\s+sampai\s+(\d+)\s+dari\s+(\d+)/);
+        if (matches) {
+            var startRow = parseInt(matches[1]);
+            var pageSize = 10; // Adjust based on your page size
+            var currentPage = Math.ceil(startRow / pageSize);
+            
+            $('.dataTables_paginate .paginate_button').each(function() {
+                var $btn = $(this);
+                var btnText = $btn.text().trim();
+                if (btnText == currentPage.toString()) {
+                    currentButtons = currentButtons.add($btn);
+                }
+            });
+        }
+    }
+    
+    // Apply current page styling
+    currentButtons.each(function() {
+        var $btn = $(this);
+        
+        // Add multiple classes for better override
+        $btn.addClass('pagination-active-override force-current-style current');
+        
+        // Apply inline styles as ultimate fallback
+        $btn.css({
+            'background': '#3b82f6',
+            'background-image': 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+            'background-color': '#3b82f6',
+            'border': '1px solid #2563eb',
+            'border-color': '#2563eb',
+            'color': 'white',
+            'font-weight': '600',
+            'box-shadow': '0 3px 12px rgba(59, 130, 246, 0.4)',
+            'z-index': '10',
+            'position': 'relative'
+        });
+        
+        // Set attributes
+        $btn.attr('aria-current', 'page');
+        $btn.attr('data-current', 'true');
+    });
+    
+    // Ensure Previous/Next button styling
+    customizePagination();
+}
+
+// Custom pagination text and icons
+function customizePagination() {
+    const prevButton = $('.dataTables_paginate .paginate_button.previous');
+    const nextButton = $('.dataTables_paginate .paginate_button.next');
+    
+    if (prevButton.length && !prevButton.find('i').length) {
+        prevButton.html('<i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya');
+    }
+    
+    if (nextButton.length && !nextButton.find('i').length) {
+        nextButton.html('Selanjutnya <i class="fa-solid fa-chevron-right ml-1"></i>');
+    }
+}
+
+// Enhanced observer for pagination changes
+var paginationObserver = new MutationObserver(function(mutations) {
+    var shouldUpdate = false;
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList' || 
+           (mutation.type === 'attributes' && 
+            (mutation.attributeName === 'class' || mutation.attributeName === 'aria-current'))) {
+            shouldUpdate = true;
+        }
+    });
+    
+    if (shouldUpdate) {
+        setTimeout(applyPaginationStyling, 50);
+    }
+});
+
+// Start observing pagination with enhanced options
+$(document).ready(function() {
+    setTimeout(function() {
+        var paginationContainer = document.querySelector('.dataTables_paginate');
+        if (paginationContainer) {
+            paginationObserver.observe(paginationContainer, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class', 'aria-current', 'style']
+            });
+        }
+        
+        // Also observe the wrapper for complete redraws
+        var wrapperContainer = document.querySelector('.dataTables_wrapper');
+        if (wrapperContainer) {
+            paginationObserver.observe(wrapperContainer, {
+                childList: true,
+                subtree: true
+            });
+        }
+    }, 500);
+});
+
+// Force styling on window load and focus
+$(window).on('load focus', function() {
+    setTimeout(applyPaginationStyling, 100);
+});
+
+// Modal functions
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+function showCreateModal() {
+    document.getElementById('createModal').classList.remove('hidden');
+}
+
+function showEditModal(subjekId) {
+    // Load edit form data via AJAX
+    fetch(`/superadmin/subjek/edit/${subjekId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('edit_nama_subjek').value = data.subjek.nama;
+                document.getElementById('editForm').action = `/superadmin/subjek/update/${subjekId}`;
+                document.getElementById('editModal').classList.remove('hidden');
+            } else {
+                showToast(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Gagal memuat data subjek', 'error');
+        });
+}
+
+function showDeleteModal(subjekId, subjekName) {
+    document.getElementById('deleteSubjekName').textContent = subjekName;
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+        deleteSubjek(subjekId);
+    };
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function deleteSubjek(subjekId) {
+    fetch(`/superadmin/subjek/delete/${subjekId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message, 'error');
+        }
+        closeModal('deleteModal');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Gagal menghapus subjek', 'error');
+        closeModal('deleteModal');
+    });
+}
+
+// Handle create form submission
+document.getElementById('createForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const actionUrl = this.action;
+    
+    fetch(actionUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message, 'error');
+        }
+        closeModal('createModal');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Gagal menyimpan data subjek', 'error');
+    });
+});
+
+// Handle edit form submission
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const actionUrl = this.action;
+    
+    fetch(actionUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message, 'error');
+        }
+        closeModal('editModal');
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Gagal menyimpan perubahan', 'error');
+    });
+});
+
+// Status Cards Slider Functionality
+function scrollCards(direction) {
+  const wrapper = document.getElementById('statusCardsWrapper');
+  const cardWidth = 220; // Approximate card width including gap
+  const scrollAmount = cardWidth * 2;
+  
+  if (direction === 'left') {
+    wrapper.scrollBy({
+      left: -scrollAmount,
+      behavior: 'smooth'
+    });
+  } else if (direction === 'right') {
+    wrapper.scrollBy({
+      left: scrollAmount,
+      behavior: 'smooth'
+    });
+  }
+}
+
+// Update scroll indicators visibility based on scroll position
+function updateScrollIndicators() {
+  const wrapper = document.getElementById('statusCardsWrapper');
+  const leftIndicator = document.querySelector('.scroll-indicator.left');
+  const rightIndicator = document.querySelector('.scroll-indicator.right');
+  
+  if (wrapper.scrollLeft <= 0) {
+    leftIndicator.style.opacity = '0';
+    leftIndicator.style.pointerEvents = 'none';
+  } else {
+    leftIndicator.style.opacity = '1';
+    leftIndicator.style.pointerEvents = 'auto';
+  }
+  
+  if (wrapper.scrollLeft >= wrapper.scrollWidth - wrapper.clientWidth) {
+    rightIndicator.style.opacity = '0';
+    rightIndicator.style.pointerEvents = 'none';
+  } else {
+    rightIndicator.style.opacity = '1';
+    rightIndicator.style.pointerEvents = 'auto';
+  }
+}
+
+// Initialize scroll indicators
+document.addEventListener('DOMContentLoaded', function() {
+  const wrapper = document.getElementById('statusCardsWrapper');
+  
+  // Check if scroll is needed
+  if (wrapper.scrollWidth <= wrapper.clientWidth) {
+    document.querySelectorAll('.scroll-indicator').forEach(indicator => {
+      indicator.style.display = 'none';
+    });
+  }
+  
+  // Add scroll event listener
+  wrapper.addEventListener('scroll', updateScrollIndicators);
+  
+  // Initial check
+  updateScrollIndicators();
+});
+
+// Touch/swipe support for mobile
+let startX = 0;
+let scrollLeft = 0;
+
+document.getElementById('statusCardsWrapper').addEventListener('touchstart', function(e) {
+  startX = e.touches[0].pageX - this.offsetLeft;
+  scrollLeft = this.scrollLeft;
+});
+
+document.getElementById('statusCardsWrapper').addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  const x = e.touches[0].pageX - this.offsetLeft;
+  const walk = (x - startX) * 2;
+  this.scrollLeft = scrollLeft - walk;
+});
+</script>
+{% endblock %}

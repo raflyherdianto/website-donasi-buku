@@ -1,0 +1,785 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/content_wrapper.html" import page_header, card %}
+
+{% block title %}Riwayat Distribusi{% endblock %}
+
+{% block extra_head %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.bootstrap5.min.css">
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .action-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+  }
+  
+  .action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  @media (max-width: 768px) {
+    .action-buttons {
+      flex-direction: column;
+      gap: 2px;
+    }
+    
+    .action-btn {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 6px;
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+    
+    .action-btn span {
+      display: inline;
+    }
+  }
+  
+  @media (min-width: 769px) {
+    .action-btn span {
+      display: none;
+    }
+  }
+  
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+  }
+  
+  .status-pengiriman {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #f59e0b;
+  }
+  
+  .status-diterima {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+  }
+  
+  /* Enhanced DataTables styling */
+  .dataTables_wrapper {
+    font-family: inherit;
+  }
+  
+  .dataTables_length select,
+  .dataTables_filter input {
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+    background-color: white !important;
+  }
+  
+  .dataTables_length select:focus,
+  .dataTables_filter input:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+  
+  .dataTables_length,
+  .dataTables_filter {
+    margin-bottom: 1rem;
+  }
+  
+  .dataTables_length label,
+  .dataTables_filter label {
+    font-weight: 500;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .dataTables_info {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+    padding: 8px 0;
+  }
+  
+  .dataTables_paginate {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 14px;
+  }
+  
+  .dataTables_paginate .paginate_button {
+    padding: 6px 10px !important;
+    margin: 0 1px !important;
+    border-radius: 4px !important;
+    border: 1px solid #d1d5db !important;
+    background: white !important;
+    color: #374151 !important;
+    font-weight: 500;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .dataTables_paginate .paginate_button:hover:not(.disabled) {
+    background: #f3f4f6 !important;
+    border-color: #9ca3af !important;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .dataTables_paginate .paginate_button.current {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+  }
+  
+  .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    background: #f9fafb !important;
+    color: #9ca3af !important;
+  }
+  
+  .dataTables_paginate .paginate_button.disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
+  .dataTables_paginate .paginate_button i {
+    font-size: 12px !important;
+  }
+  
+  .dataTables_wrapper .row:last-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  @media (max-width: 768px) {
+    .dataTables_wrapper .row:last-child {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .dataTables_paginate {
+      justify-content: center;
+      width: 100%;
+    }
+    
+    .dataTables_paginate .paginate_button {
+      padding: 5px 8px !important;
+      min-width: 28px !important;
+      height: 28px !important;
+      font-size: 13px !important;
+    }
+    
+    .dataTables_paginate .paginate_button i {
+      font-size: 11px !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Riwayat Distribusi", "Kelola dan konfirmasi penerimaan distribusi buku dari pusat.") }}
+
+<div class="bg-white p-4 md:p-6 rounded-lg shadow-md">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <h3 class="text-xl font-semibold text-blue-700">Daftar Riwayat Distribusi</h3>
+  </div>
+
+  <!-- DataTable Container -->
+  <div class="overflow-x-auto">
+    <table id="distribusiTable" class="min-w-full text-sm text-gray-700 table-auto">
+      <thead class="bg-blue-100 text-blue-800">
+        <tr>
+          <th class="py-3 px-2 md:px-4 text-left">Tanggal</th>
+          <th class="py-3 px-2 md:px-4 text-left">Nama Perpus</th>
+          <th class="py-3 px-2 md:px-4 text-left">Subjek</th>
+          <th class="py-3 px-2 md:px-4 text-left">Jumlah</th>
+          <th class="py-3 px-2 md:px-4 text-left">Status</th>
+          <th class="py-3 px-2 md:px-4 text-center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in data_distribusi %}
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-2 px-2 md:px-4" data-sort="{{ item.created_at.strftime('%Y%m%d') }}">
+            {{ item.created_at.strftime('%d-%m-%Y') }}
+          </td>
+          <td class="py-2 px-2 md:px-4">
+            <div class="max-w-32 truncate" title="{{ item.perpus.nama }}">
+              {{ item.perpus.nama }}
+            </div>
+          </td>
+          <td class="py-2 px-2 md:px-4">
+            {% if item.detail_riwayat_distribusi %}
+              {% set unique_subjects = [] %}
+              {% for detail in item.detail_riwayat_distribusi %}
+                {% if detail.subjek and detail.subjek.nama not in unique_subjects %}
+                  {% set _ = unique_subjects.append(detail.subjek.nama) %}
+                {% endif %}
+              {% endfor %}
+              {% if unique_subjects %}
+                <div class="max-w-48 truncate" title="{{ unique_subjects|join(', ') }}">
+                  {{ unique_subjects|join(', ') }}
+                </div>
+              {% else %}
+                Tidak ada data
+              {% endif %}
+            {% else %}
+              Tidak ada data
+            {% endif %}
+          </td>
+          <td class="py-2 px-2 md:px-4 text-center">{{ item.jumlah or 0 }}</td>
+          <td class="py-2 px-2 md:px-4">
+            <span class="status-badge 
+              {% if item.status == 'diterima' %}status-diterima{% else %}status-pengiriman{% endif %}">
+              {% if item.status == 'diterima' %}Diterima{% else %}Segera Diambil{% endif %}
+            </span>
+          </td>
+          <td class="py-2 px-2 md:px-4">
+            <div class="action-buttons">
+              {% if item.status == 'diterima' %}
+              <button onclick="viewDetail({{ item.id }})" 
+                      class="action-btn bg-blue-500 hover:bg-blue-600 text-white"
+                      title="Detail">
+                <i data-lucide="eye" class="w-3 h-3"></i>
+                <span>Detail</span>
+              </button>
+              {% else %}
+              <button onclick="editDistribusi({{ item.id }})" 
+                      class="action-btn bg-amber-500 hover:bg-amber-600 text-white"
+                      title="Edit">
+                <i data-lucide="edit" class="w-3 h-3"></i>
+                <span>Edit</span>
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white max-h-screen overflow-y-auto">
+    <div class="mt-3">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-semibold text-gray-900">Detail Riwayat Distribusi</h3>
+        <button type="button" onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Distribusi</label>
+            <div id="detail-tanggal" class="p-2 bg-gray-50 border rounded text-sm"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <div id="detail-status" class="p-2"></div>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Perpustakaan</label>
+          <div id="detail-nama" class="p-2 bg-gray-50 border rounded text-sm"></div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-3">Detail Subjek</label>
+          <div id="detail-paket" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm bg-gray-50 p-3">
+            <!-- Detail paket akan dimuat di sini -->
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-3">Bukti Foto</label>
+          <div id="detail-bukti" class="p-2"></div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex justify-end mt-6">
+        <button type="button" onclick="closeDetailModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded transition duration-200">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+  <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+    <div class="mt-3">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900" id="editModalTitle">Edit Riwayat Distribusi</h3>
+        <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="editForm" method="POST" action="{{ url_for('admin.riwayat_distribusi') }}" enctype="multipart/form-data">
+        <input type="hidden" id="distribusi_id" name="distribusi_id" value="">
+        <input type="hidden" id="status" name="status" value="diterima">
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Nama Perpustakaan</label>
+            <input type="text" id="edit_nama_perpustakaan" name="edit_nama_perpustakaan" 
+                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 p-2" 
+                   readonly>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Detail Subjek</label>
+            <div id="edit_detail_paket" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm bg-gray-50 p-3">
+              <!-- Detail paket akan dimuat di sini -->
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Status</label>
+            <input type="text" value="Diterima" 
+                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm bg-green-100 text-green-800 p-2 font-medium" 
+                   readonly>
+            <p class="text-xs text-gray-500 mt-1">Status otomatis diset menjadi "Diterima" setelah upload bukti foto</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Bukti Foto *</label>
+            <input type="file" id="bukti_foto" name="bukti_foto" accept="image/*" required
+                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2">
+            <p class="text-xs text-gray-500 mt-1">Format: JPG, JPEG, PNG. Maksimal 2MB. <span class="text-red-500 font-medium">Wajib diisi</span></p>
+            <div id="current_photo" class="mt-2 hidden">
+              <p class="text-xs text-gray-600">Foto saat ini:</p>
+              <img id="current_photo_img" src="" alt="Current Photo" class="mt-1 h-20 w-20 object-cover rounded">
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end space-x-3 mt-6">
+          <button type="button" onclick="closeEditModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded transition duration-200">
+            Batal
+          </button>
+          <button type="submit" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition duration-200">
+            Konfirmasi Penerimaan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.3.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+  // Initialize DataTable
+  $('#distribusiTable').DataTable({
+    "language": {
+      "url": "//cdn.datatables.net/plug-ins/1.12.1/i18n/id.json",
+      "lengthMenu": "Tampilkan _MENU_ entri",
+      "search": "Cari:",
+      "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+      "infoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
+      "infoFiltered": "(disaring dari _MAX_ total entri)",
+      "paginate": {
+        "first": "Pertama",
+        "last": "Terakhir",
+        "next": '<i class="fa-solid fa-chevron-right"></i>',
+        "previous": '<i class="fa-solid fa-chevron-left"></i>'
+      }
+    },
+    "order": [[ 0, "desc" ]],
+    "pageLength": 10,
+    "responsive": true,
+    "scrollX": true,
+    "columnDefs": [
+      {
+        "targets": [0], // Date column
+        "type": "date",
+        "orderData": [0]
+      },
+      {
+        "targets": [5], // Action column
+        "orderable": false,
+        "searchable": false
+      }
+    ],
+    "initComplete": function() {
+      lucide.createIcons();
+      customizePagination();
+    },
+    "drawCallback": function() {
+      lucide.createIcons();
+      customizePagination();
+    }
+  });
+});
+
+// Custom pagination styling function
+function customizePagination() {
+  setTimeout(function() {
+    const prevButton = $('.dataTables_paginate .paginate_button.previous');
+    const nextButton = $('.dataTables_paginate .paginate_button.next');
+    
+    if (prevButton.length && !prevButton.find('i').length) {
+      prevButton.html('<i class="fa-solid fa-chevron-left"></i>');
+    }
+    
+    if (nextButton.length && !nextButton.find('i').length) {
+      nextButton.html('<i class="fa-solid fa-chevron-right"></i>');
+    }
+  }, 50);
+}
+
+// View detail function with better error handling
+async function viewDetail(id) {
+  try {
+    console.log('Fetching detail for ID:', id);
+    
+    const url = `{{ url_for('admin.detail_riwayat_distribusi', id=0) }}`.replace('0', id);
+    console.log('Request URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+    
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (e) {
+        // If response is not JSON, try to get text
+        try {
+          const errorText = await response.text();
+          console.error('Error response text:', errorText);
+          if (errorText.length > 0 && errorText.length < 200) {
+            errorMessage = errorText;
+          }
+        } catch (textError) {
+          console.error('Could not read error response:', textError);
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (data.success) {
+      const item = data.data || {};
+      
+      // Populate detail modal with safety checks and default values
+      document.getElementById('detail-tanggal').textContent = item.created_at || 'Tidak ada data';
+      document.getElementById('detail-nama').textContent = item.perpus_nama || 'Tidak ada data';
+      
+      // Populate detail paket
+      const detailPaketDiv = document.getElementById('detail-paket');
+      if (item.detail_paket && item.detail_paket.length > 0) {
+        let detailHtml = '<div class="space-y-2">';
+        
+        item.detail_paket.forEach(detail => {
+          detailHtml += `
+            <div class="flex justify-between items-center py-2 px-3 bg-white border rounded">
+              <span class="font-medium text-gray-700">${detail.subjek}</span>
+              <span class="text-blue-600 font-semibold">${detail.jumlah} buku</span>
+            </div>
+          `;
+        });
+        
+        detailHtml += `
+          <div class="flex justify-between items-center py-2 px-3 bg-blue-50 border border-blue-200 rounded font-bold">
+            <span class="text-blue-800">Total Keseluruhan</span>
+            <span class="text-blue-800">${item.total_keseluruhan || 0} buku</span>
+          </div>
+        `;
+        
+        detailHtml += '</div>';
+        detailPaketDiv.innerHTML = detailHtml;
+      } else {
+        detailPaketDiv.innerHTML = '<p class="text-gray-500 text-sm">Tidak ada detail paket</p>';
+      }
+      
+      // Status badge
+      const statusElement = document.getElementById('detail-status');
+      let statusClass = item.status === 'diterima' ? 'status-diterima' : 'status-pengiriman';
+      let statusText = item.status === 'diterima' ? 'Diterima' : 'Pengiriman';
+      statusElement.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
+      
+      // Bukti foto
+      const buktiElement = document.getElementById('detail-bukti');
+      if (item.bukti_foto) {
+        const imageUrl = `{{ url_for('static', filename='public/bukti-distribusi/') }}${item.bukti_foto}`;
+        buktiElement.innerHTML = `
+          <a href="${imageUrl}" target="_blank" class="inline-block cursor-pointer hover:opacity-75 transition-opacity">
+            <img src="${imageUrl}" 
+                 alt="Bukti Foto" 
+                 class="max-w-full h-48 object-cover rounded border hover:shadow-lg transition-shadow"
+                 title="Klik untuk melihat gambar dalam ukuran penuh"
+                 onerror="this.style.display='none'; this.parentElement.nextElementSibling.style.display='block';">
+          </a>
+          <p class="text-red-500 text-sm mt-2" style="display:none;">Gagal memuat gambar</p>
+          <p class="text-xs text-gray-500 mt-1">
+            <i class="fa-solid fa-external-link-alt mr-1"></i>
+            Klik gambar untuk melihat dalam ukuran penuh
+          </p>
+        `;
+      } else {
+        buktiElement.innerHTML = '<p class="text-gray-500 text-sm">Belum ada bukti foto</p>';
+      }
+      
+      // Show modal
+      document.getElementById('detailModal').classList.remove('hidden');
+      
+    } else {
+      throw new Error(data.message || 'Gagal memuat data');
+    }
+  } catch (error) {
+    console.error('Error loading detail:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Show more specific error message
+    let errorMsg = 'Gagal memuat detail';
+    if (error.message.includes('500')) {
+      errorMsg += ': Terjadi kesalahan server. Silakan coba lagi atau hubungi administrator.';
+    } else {
+      errorMsg += ': ' + error.message;
+    }
+    
+    alert(errorMsg);
+  }
+}
+
+// Edit distribusi function with better error handling
+async function editDistribusi(id) {
+  try {
+    console.log('Fetching edit data for ID:', id);
+    
+    const url = `{{ url_for('admin.edit_riwayat_distribusi', id=0) }}`.replace('0', id);
+    console.log('Edit request URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('Edit response status:', response.status);
+    
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } catch (e) {
+        try {
+          const errorText = await response.text();
+          console.error('Edit error response text:', errorText);
+          if (errorText.length > 0 && errorText.length < 200) {
+            errorMessage = errorText;
+          }
+        } catch (textError) {
+          console.error('Could not read edit error response:', textError);
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const data = await response.json();
+    console.log('Edit response data:', data);
+    
+    if (data.success) {
+      const item = data.data || {};
+      
+      // Populate form fields with safety checks and default values
+      document.getElementById('distribusi_id').value = item.id || '';
+      document.getElementById('edit_nama_perpustakaan').value = item.perpus_nama || '';
+      
+      // Populate detail paket
+      const detailPaketDiv = document.getElementById('edit_detail_paket');
+      if (item.detail_paket && item.detail_paket.length > 0) {
+        let detailHtml = '<div class="space-y-2">';
+        
+        item.detail_paket.forEach(detail => {
+          detailHtml += `
+            <div class="flex justify-between items-center py-2 px-3 bg-white border rounded">
+              <span class="font-medium text-gray-700">${detail.subjek}</span>
+              <span class="text-blue-600 font-semibold">${detail.jumlah} buku</span>
+            </div>
+          `;
+        });
+        
+        detailHtml += `
+          <div class="flex justify-between items-center py-2 px-3 bg-blue-50 border border-blue-200 rounded font-bold">
+            <span class="text-blue-800">Total Keseluruhan</span>
+            <span class="text-blue-800">${item.total_keseluruhan || 0} buku</span>
+          </div>
+        `;
+        
+        detailHtml += '</div>';
+        detailPaketDiv.innerHTML = detailHtml;
+      } else {
+        detailPaketDiv.innerHTML = '<p class="text-gray-500 text-sm">Tidak ada detail paket</p>';
+      }
+      
+      // Show current photo if exists
+      const currentPhotoDiv = document.getElementById('current_photo');
+      const currentPhotoImg = document.getElementById('current_photo_img');
+      
+      if (item.bukti_foto) {
+        currentPhotoDiv.classList.remove('hidden');
+        currentPhotoImg.src = `{{ url_for('static', filename='public/bukti-distribusi/') }}${item.bukti_foto}`;
+        currentPhotoImg.onerror = function() {
+          this.style.display = 'none';
+          currentPhotoDiv.innerHTML += '<p class="text-red-500 text-sm">Gagal memuat gambar</p>';
+        };
+      } else {
+        currentPhotoDiv.classList.add('hidden');
+      }
+      
+      // Reset file input
+      document.getElementById('bukti_foto').value = '';
+      
+      // Show modal
+      document.getElementById('editModal').classList.remove('hidden');
+    } else {
+      throw new Error(data.message || 'Failed to load data');
+    }
+  } catch (error) {
+    console.error('Error loading edit data:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Show more specific error message
+    let errorMsg = 'Gagal memuat data';
+    if (error.message.includes('500')) {
+      errorMsg += ': Terjadi kesalahan server. Silakan coba lagi atau hubungi administrator.';
+    } else {
+      errorMsg += ': ' + error.message;
+    }
+    
+    alert(errorMsg);
+  }
+}
+
+// Add form validation
+document.getElementById('editForm').addEventListener('submit', function(e) {
+  const buktiInput = document.getElementById('bukti_foto');
+  
+  if (!buktiInput.files || buktiInput.files.length === 0) {
+    e.preventDefault();
+    alert('Harap upload bukti foto terlebih dahulu!');
+    buktiInput.focus();
+    return false;
+  }
+  
+  // Check file size
+  const file = buktiInput.files[0];
+  if (file.size > 2 * 1024 * 1024) { // 2MB
+    e.preventDefault();
+    alert('Ukuran file terlalu besar. Maksimal 2MB.');
+    buktiInput.focus();
+    return false;
+  }
+  
+  // Check file type
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+  if (!allowedTypes.includes(file.type)) {
+    e.preventDefault();
+    alert('Format file tidak didukung. Gunakan JPG, JPEG, atau PNG.');
+    buktiInput.focus();
+    return false;
+  }
+});
+
+// Close modals
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.add('hidden');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+  document.getElementById('editForm').reset();
+  document.getElementById('current_photo').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const detailModal = document.getElementById('detailModal');
+  const editModal = document.getElementById('editModal');
+  
+  if (event.target == detailModal) {
+    closeDetailModal();
+  } else if (event.target == editModal) {
+    closeEditModal();
+  }
+}
+</script>
+{% endblock %}

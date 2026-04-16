@@ -1,0 +1,249 @@
+{% extends "pengguna/base_public.html" %}
+{% from "pengguna/content_wrapper.html" import content_container %}
+
+{% block title %}Riwayat Transparansi Donasi{% endblock %}
+
+{% block extra_head %}
+<style>
+    .donation-card {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 16px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        min-height: 280px;
+    }
+    
+    .donation-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transform: translate(30%, -30%);
+    }
+    
+    .status-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .donor-info {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .distribution-item {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+    }
+    
+    .scrollbar-hide {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% call content_container("7xl", "px-4 sm:px-6 py-10") %}
+    <div class="text-center mb-8 sm:mb-12">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-700 mb-4">Riwayat Transparansi Donasi</h1>
+        <p class="text-sm sm:text-base text-gray-600">Berikut ini adalah data distribusi donasi yang telah dilakukan.</p>
+    </div>
+
+    {% if donasi and donasi|length > 0 %}
+        <!-- Horizontal scrollable container -->
+        <div class="relative">
+            <div class="flex space-x-6 overflow-x-auto scrollbar-hide pb-4" style="scroll-snap-type: x mandatory;">
+                {% for d in donasi %}
+                <div class="flex-none w-80 sm:w-96" style="scroll-snap-align: start;">
+                    <div class="donation-card p-6 relative">
+                        <!-- Status Badge -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="status-badge px-3 py-1 rounded-full text-xs font-medium">
+                                Diterima
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs opacity-75">Invoice</div>
+                                <div class="text-sm font-semibold">#{{ d.invoice }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Donor Info -->
+                        <div class="donor-info rounded-lg p-4 mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm opacity-75">Donatur:</span>
+                                <span class="text-sm font-semibold text-green-300">{{ d.donatur_name }}</span>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm opacity-75">Total Buku:</span>
+                                <span class="text-sm font-bold">{{ d.jumlah_buku }}</span>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm opacity-75">Total Diterima:</span>
+                                <span class="text-sm font-medium">{{ d.total_diterima }}</span>
+                            </div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm opacity-75">Buku Ditinjau:</span>
+                                <span class="text-sm font-medium">{{ d.tidak_sesuai}}</span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-sm opacity-75">Subjek Buku:</span>
+                                <div class="mt-1 space-y-1 max-h-12 overflow-y-auto scrollbar-hide">
+                                    {% if d.subjek_list %}
+                                        {% for subjek in d.subjek_list.split(',') %}
+                                        <div class="text-xs bg-white bg-opacity-20 rounded px-2 py-1 inline-block mr-1 mb-1">
+                                            {{ subjek.strip() }}
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-xs bg-white bg-opacity-20 rounded px-2 py-1 inline-block">
+                                            Pendidikan
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Notes Section -->
+                            {% if d.notes and d.notes.strip() %}
+                            <div class="mb-2">
+                                <span class="text-sm opacity-75">Catatan:</span>
+                                <div class="mt-1 text-xs bg-white bg-opacity-15 rounded-lg p-2 max-h-16 overflow-y-auto scrollbar-hide">
+                                    <p class="text-white break-words">{{ d.notes }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status Information -->
+                        {% if d.tidak_sesuai > 0 %}
+                        <div class="mb-4">
+                            {% if d.rejection_details %}
+                            <div class="text-xs opacity-75 mb-2">
+                                <span class="font-medium">Alasan:</span>
+                            </div>
+                            <div class="space-y-2">
+                                {% for rejection in d.rejection_details %}
+                                <div class="distribution-item rounded-lg p-2">
+                                    <div class="flex flex-col sm:flex-row sm:items-start justify-between">
+                                        <div class="flex-1">
+                                            <div class="text-xs font-medium text-red-200 mb-1">{{ rejection.subjek_nama }}</div>
+                                            <div class="text-xs opacity-75 break-words">{{ rejection.alasan }}</div>
+                                        </div>
+                                        <span class="text-xs font-medium text-red-300 mt-1 sm:mt-0 sm:ml-2 self-start">{{ rejection.jumlah_ditolak }} buku</span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-sm opacity-75">Tersalurkan:</span>
+                            <span class="text-sm font-bold text-green-300">{{ d.tersalurkan }}</span>
+                        </div>
+
+                        <!-- Distribution Details -->
+                        <div>
+                            <div class="text-sm opacity-75 mb-2">Distribusi:</div>
+                            <div class="space-y-2 max-h-20 overflow-y-auto scrollbar-hide">
+                                {% if d.distribusi_list %}
+                                    {% for dist in d.distribusi_list %}
+                                    <div class="distribution-item rounded-lg p-2 flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                                            <div class="text-xs">
+                                                <div class="font-medium">Perpus {{ dist.perpus_nama }}</div>
+                                                <div class="opacity-75">{{ dist.kecamatan }}</div>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs font-medium">{{ dist.jumlah_buku }} buku</span>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                <div class="distribution-item rounded-lg p-2 text-center">
+                                    <span class="text-xs opacity-75">Belum ada distribusi</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Scroll indicators -->
+            <div class="flex justify-center mt-4 space-x-1">
+                {% for i in range(donasi|length) %}
+                <div class="w-2 h-2 bg-gray-300 rounded-full scroll-indicator" data-index="{{ i }}"></div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-gray-50 rounded-xl shadow-md p-8 text-center max-w-md mx-auto">
+            <div class="flex flex-col items-center">
+                <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <h3 class="text-lg font-semibold text-red-500 mb-2">Belum ada donasi yang tersalurkan.</h3>
+                <p class="text-sm sm:text-base text-gray-600">Data riwayat distribusi akan muncul setelah Donasi disalurkan kepada Perpustakaan Desa.</p>
+            </div>
+        </div>
+    {% endif %}
+{% endcall %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scrollContainer = document.querySelector('.overflow-x-auto');
+    const indicators = document.querySelectorAll('.scroll-indicator');
+    
+    if (scrollContainer && indicators.length > 0) {
+        // Update active indicator based on scroll position
+        scrollContainer.addEventListener('scroll', function() {
+            const scrollLeft = scrollContainer.scrollLeft;
+            const cardWidth = scrollContainer.querySelector('.flex-none').offsetWidth + 24; // 24px for gap
+            const activeIndex = Math.round(scrollLeft / cardWidth);
+            
+            indicators.forEach((indicator, index) => {
+                if (index === activeIndex) {
+                    indicator.classList.remove('bg-gray-300');
+                    indicator.classList.add('bg-blue-500');
+                } else {
+                    indicator.classList.remove('bg-blue-500');
+                    indicator.classList.add('bg-gray-300');
+                }
+            });
+        });
+        
+        // Click indicator to scroll to specific card
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', function() {
+                const cardWidth = scrollContainer.querySelector('.flex-none').offsetWidth + 24;
+                scrollContainer.scrollTo({
+                    left: index * cardWidth,
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Initialize first indicator as active
+        if (indicators[0]) {
+            indicators[0].classList.remove('bg-gray-300');
+            indicators[0].classList.add('bg-blue-500');
+        }
+    }
+});
+</script>
+{% endblock %}

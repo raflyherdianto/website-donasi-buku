@@ -1,0 +1,35 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% from "superadmin/content_wrapper.html" import page_header, card, form_group %}
+
+{% block title %}Tambah Perpustakaan{% endblock %}
+
+{% block content %}
+{{ page_header("Form Tambah Perpustakaan", "Tambahkan perpustakaan desa baru ke dalam sistem.") }}
+
+{% call card("Data Perpustakaan") %}
+    <form method="POST" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {{ form_group("Nama Perpustakaan", "nama_perpus", required=True, placeholder="Contoh: Perpustakaan Desa Sumberjo") }}
+            {{ form_group("Kecamatan", "kecamatan", required=True, placeholder="Contoh: Tempeh") }}
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {{ form_group("Desa", "desa", required=True, placeholder="Contoh: Sumberjo") }}
+            {{ form_group("Username", "username", required=True, placeholder="Username untuk login admin") }}
+        </div>
+        
+        {{ form_group("Password", "password", type="password", required=True, placeholder="Password minimal 6 karakter") }}
+        
+        <div class="flex flex-col sm:flex-row gap-4 pt-4">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition duration-200 flex items-center justify-center">
+                <i class="fas fa-save mr-2"></i>
+                Simpan Perpustakaan
+            </button>
+            <a href="{{ url_for('superadmin.daftar_perpustakaan') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded transition duration-200 flex items-center justify-center">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Kembali ke Daftar
+            </a>
+        </div>
+    </form>
+{% endcall %}
+{% endblock %}

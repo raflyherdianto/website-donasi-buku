@@ -1,0 +1,403 @@
+{% extends "admin/base_admin.html" %}
+{% from "admin/content_wrapper.html" import page_header, card %}
+
+{% block title %}Profil Perpustakaan{% endblock %}
+
+{% block extra_head %}
+<!-- Leaflet for Interactive Map -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  .image-preview {
+    width: 100%;
+    height: 120px;
+    border: 2px dashed #cbd5e0;
+    border-radius: 8px;
+    padding: 4px;
+    margin-top: 8px;
+    display: none;
+    overflow: hidden;
+    background: #f8fafc;
+    position: relative;
+  }
+  
+  .image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    display: block;
+  }
+  
+  .gps-button {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+  }
+  
+  @media (max-width: 768px) {
+    .image-preview {
+      height: 100px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ page_header("Profil Koleksi Perpustakaan", "Silakan isi informasi lengkap tentang profil dan koleksi perpustakaan Anda.") }}
+
+<!-- Upload Profil Perpustakaan -->
+<div class="bg-white p-6 rounded-lg shadow max-w-6xl mx-auto mb-10">
+  <h2 class="text-xl font-semibold mb-4 text-green-700">Upload Profil Perpustakaan</h2>
+  <form action="{{ url_for('admin.profil_perpustakaan') }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    
+    <!-- Hidden GPS fields -->
+    <input type="hidden" id="latitude" name="latitude" value="{{ detail_perpus.latitude if detail_perpus else '' }}">
+    <input type="hidden" id="longitude" name="longitude" value="{{ detail_perpus.longitude if detail_perpus else '' }}">
+    
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Penanggung Jawab *</label>
+      <input type="text" name="penanggung_jawab" value="{{ detail_perpus.penanggung_jawab if detail_perpus else '' }}" class="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500" required>
+    </div>
+    
+    <div class="flex flex-col">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Foto Profil Perpus (Maks 2MB)</label>
+      <input type="file" name="foto" accept=".jpg,.jpeg,.png" onchange="previewImage(event)" class="w-full border border-gray-300 p-2 rounded bg-gray-50">
+      <div id="imagePreview" class="image-preview">
+        {% if detail_perpus and detail_perpus.foto_perpus %}
+        <img src="{{ url_for('static', filename='public/foto-perpus/' + detail_perpus.foto_perpus) }}" alt="Current Photo">
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="md:col-span-2">
+      <label class="block text-sm font-medium text-gray-700">Deskripsi Perpustakaan *</label>
+      <textarea name="deskripsi" rows="3" class="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500" required>{{ detail_perpus.deskripsi if detail_perpus else '' }}</textarea>
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Latar Belakang Perpustakaan *</label>
+      <textarea name="latar_belakang" rows="3" class="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500" required>{{ detail_perpus.latar_belakang if detail_perpus else '' }}</textarea>
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Nama Perpustakaan</label>
+      <input type="text" value="{{ perpus.nama if perpus else 'Nama perpustakaan tidak ditemukan' }}" class="w-full border border-gray-300 p-2 rounded bg-gray-100 text-gray-600" readonly>
+      <p class="text-xs text-gray-500 mt-1">Nama diambil otomatis dari data perpustakaan</p>
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Jumlah Koleksi</label>
+      <input type="number" name="jumlah_koleksi" min="0" value="{{ detail_perpus.jumlah_koleksi if detail_perpus and detail_perpus.jumlah_koleksi is not none else '' }}" class="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500">
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Jumlah Eksemplar</label>
+      <input type="number" name="jumlah_eksemplar" min="0" value="{{ detail_perpus.jumlah_eksemplar if detail_perpus and detail_perpus.jumlah_eksemplar is not none else '' }}" class="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500">
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Jam Operasional (WIB)</label>
+      <div class="flex items-center space-x-2">
+        <input type="time" name="jam_operasional_mulai" value="{{ detail_perpus.jam_operasional_mulai.strftime('%H:%M') if detail_perpus and detail_perpus.jam_operasional_mulai else '' }}" class="flex-1 border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500">
+        <span class="text-gray-500">-</span>
+        <input type="time" name="jam_operasional_selesai" value="{{ detail_perpus.jam_operasional_selesai.strftime('%H:%M') if detail_perpus and detail_perpus.jam_operasional_selesai else '' }}" class="flex-1 border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500">
+      </div>
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Koleksi Buku</label>
+      <input type="text" name="koleksi_buku" value="{{ detail_perpus.koleksi_buku if detail_perpus else '' }}" class="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500">
+    </div>
+    
+    <div class="md:col-span-2">
+      <label class="block text-sm font-medium text-gray-700">Lokasi GPS *</label>
+      <div class="space-y-3">
+        <input type="text" id="lokasi_display" readonly 
+               value="{{ detail_perpus.lokasi if detail_perpus else 'Lokasi belum diset' }}" 
+               class="block w-full border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-600 p-2" 
+               placeholder="Klik pada peta atau gunakan GPS untuk menandai lokasi">
+        
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="getCurrentLocation()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition flex items-center space-x-2">
+            <i class="fas fa-crosshairs"></i>
+            <span>Gunakan Lokasi Saat Ini</span>
+          </button>
+          <button type="button" onclick="clearLocation()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition flex items-center space-x-2">
+            <i class="fas fa-times"></i>
+            <span>Hapus Pin</span>
+          </button>
+        </div>
+        
+        <div id="locationDisplay" class="text-xs text-gray-500"></div>
+        
+        <!-- Interactive Map Container using Leaflet -->
+        <div class="border rounded-lg overflow-hidden">
+          <div id="interactive-map" style="height: 300px; width: 100%; position: relative;">
+            <div id="map-placeholder" class="h-full flex items-center justify-center text-gray-500 bg-gray-100">
+              <div class="text-center">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                <p class="font-medium">Memuat peta...</p>
+                <p class="text-xs mt-1">Klik pada peta untuk menandai lokasi</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <p class="text-xs text-gray-500">
+          Klik "Gunakan Lokasi Saat Ini" untuk mendapatkan koordinat GPS otomatis, atau klik pada peta untuk menandai lokasi secara manual. Link Google Maps akan dibuat otomatis.
+        </p>
+      </div>
+    </div>
+    
+    <div class="md:col-span-2 text-center">
+      <button type="submit" class="bg-green-600 text-white px-8 py-2 rounded hover:bg-green-700 transition">SIMPAN PROFIL</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- Leaflet for Interactive Map -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+let map = null;
+let marker = null;
+let currentLat = null;
+let currentLng = null;
+let mapInitialized = false;
+
+// Initialize map when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  initializeInteractiveMap();
+  
+  // Set existing location if available
+  const existingLat = document.getElementById('latitude').value;
+  const existingLng = document.getElementById('longitude').value;
+  
+  if (existingLat && existingLng) {
+    setTimeout(() => {
+      setMapLocation(parseFloat(existingLat), parseFloat(existingLng), true);
+    }, 500);
+  }
+  
+  // Show existing image preview if available
+  const preview = document.getElementById('imagePreview');
+  if (preview && preview.querySelector('img')) {
+    preview.style.display = 'block';
+  }
+});
+
+function initializeInteractiveMap() {
+  if (mapInitialized) return;
+  
+  try {
+    const mapContainer = document.getElementById('interactive-map');
+    const placeholder = document.getElementById('map-placeholder');
+    
+    placeholder.style.display = 'none';
+    
+    const defaultLat = -8.1335;
+    const defaultLng = 113.2252;
+    
+    map = L.map('interactive-map').setView([defaultLat, defaultLng], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+    
+    map.on('click', function(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      setMapLocation(lat, lng, true);
+    });
+    
+    mapInitialized = true;
+    showToast('Peta berhasil dimuat. Klik pada peta untuk menandai lokasi.', 'info');
+    
+  } catch (error) {
+    console.error('Error initializing map:', error);
+    showToast('Gagal memuat peta: ' + error.message, 'error');
+    showFallbackLocationInput();
+  }
+}
+
+function showFallbackLocationInput() {
+  const mapContainer = document.getElementById('interactive-map');
+  mapContainer.innerHTML = `
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+      <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl mb-2"></i>
+      <p class="text-sm text-yellow-800 mb-3">Peta tidak dapat dimuat. Gunakan input koordinat manual:</p>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Latitude:</label>
+          <input type="number" id="manual-lat" step="any" placeholder="-8.1335" class="w-full p-2 border rounded text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-600 mb-1">Longitude:</label>
+          <input type="number" id="manual-lng" step="any" placeholder="113.2252" class="w-full p-2 border rounded text-sm">
+        </div>
+      </div>
+      <button type="button" onclick="setManualCoordinates()" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+        Set Koordinat
+      </button>
+    </div>
+  `;
+}
+
+function setManualCoordinates() {
+  const lat = parseFloat(document.getElementById('manual-lat').value);
+  const lng = parseFloat(document.getElementById('manual-lng').value);
+  
+  if (isNaN(lat) || isNaN(lng)) {
+    showToast('Masukkan koordinat yang valid', 'error');
+    return;
+  }
+  
+  setMapLocation(lat, lng, false);
+}
+
+function setMapLocation(lat, lng, showPin = true) {
+  currentLat = lat;
+  currentLng = lng;
+  
+  document.getElementById('latitude').value = lat;
+  document.getElementById('longitude').value = lng;
+  
+  const mapsLink = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+  document.getElementById('lokasi_display').value = mapsLink;
+  
+  let locationHTML = '<div class="flex items-center space-x-2">';
+  locationHTML += '<i class="fas fa-map-marker-alt text-green-600"></i>';
+  locationHTML += '<span>Koordinat: ' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '</span>';
+  locationHTML += '<a href="' + mapsLink + '" target="_blank" class="text-blue-600 hover:underline text-xs">';
+  locationHTML += '<i class="fas fa-external-link-alt mr-1"></i>Lihat di Google Maps';
+  locationHTML += '</a>';
+  locationHTML += '</div>';
+  
+  document.getElementById('locationDisplay').innerHTML = locationHTML;
+  
+  if (map && showPin) {
+    if (marker) {
+      marker.setLatLng([lat, lng]);
+    } else {
+      marker = L.marker([lat, lng]).addTo(map);
+    }
+    
+    marker.bindPopup('<strong>Lokasi Perpustakaan</strong><br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6));
+    map.setView([lat, lng], 15);
+  }
+  
+  showToast('Lokasi berhasil ditandai dan link Google Maps telah diisi!', 'success');
+}
+
+function getCurrentLocation() {
+  const button = event.target.closest('button');
+  const originalText = button.innerHTML;
+  
+  button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Mendapatkan lokasi...</span>';
+  button.disabled = true;
+  
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        setMapLocation(lat, lng, true);
+        
+        button.innerHTML = originalText;
+        button.disabled = false;
+      },
+      function(error) {
+        let errorMessage = 'Gagal mendapatkan lokasi. ';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'Izin lokasi ditolak.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'Informasi lokasi tidak tersedia.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'Timeout mendapatkan lokasi.';
+            break;
+          default:
+            errorMessage += 'Error tidak diketahui.';
+            break;
+        }
+        
+        showToast(errorMessage, 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  } else {
+    showToast('Geolocation tidak didukung browser ini.', 'error');
+    button.innerHTML = originalText;
+    button.disabled = false;
+  }
+}
+
+function clearLocation() {
+  currentLat = null;
+  currentLng = null;
+  
+  document.getElementById('latitude').value = '';
+  document.getElementById('longitude').value = '';
+  document.getElementById('locationDisplay').innerHTML = '';
+  document.getElementById('lokasi_display').value = 'Lokasi belum diset';
+  
+  if (map && marker) {
+    map.removeLayer(marker);
+    marker = null;
+  }
+  
+  const manualLat = document.getElementById('manual-lat');
+  const manualLng = document.getElementById('manual-lng');
+  if (manualLat) manualLat.value = '';
+  if (manualLng) manualLng.value = '';
+  
+  showToast('Pin lokasi dan link Google Maps dihapus', 'info');
+}
+
+// Image preview function
+function previewImage(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('imagePreview');
+  
+  if (file) {
+    // Check file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Ukuran file terlalu besar. Maksimal 2MB.', 'error');
+      event.target.value = '';
+      preview.style.display = 'none';
+      return;
+    }
+    
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      showToast('Format file tidak didukung. Gunakan JPG, JPEG, atau PNG.', 'error');
+      event.target.value = '';
+      preview.style.display = 'none';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

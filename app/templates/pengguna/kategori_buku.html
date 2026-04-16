@@ -1,0 +1,48 @@
+<!-- buatkan halaman kategori buku sesuai dengan style halaman syarat_ketentuan dengan konten statis  --> 
+{% extends "pengguna/base_public.html" %}
+
+{% block title %}
+Kategori Buku - Donasi Buku Lumajang
+{% endblock %}
+
+{% block content %}
+{% from "pengguna/content_wrapper.html" import content_container, card, grid_container %}
+{% call content_container("7xl", "px-4 sm:px-6 py-10") %}
+    <div class="text-center mb-8 sm:mb-12">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-700 mb-4">Kategori Buku</h1>
+        <p class="text-gray-600 text-base sm:text-lg">Halaman ini menampilkan daftar kategori subjek buku yang digunakan dalam sistem Donasi Buku Perpustakaan Desa Kabupaten Lumajang. Panduan ini untuk membantu Donatur memilih jenis buku yang paling bermanfaat untuk didonasikan ke perpustakaan desa. Daftar ini telah disusun dan disederhanakan agar mudah dipahami oleh donatur.</p>
+    </div>
+
+    {% call grid_container("grid-cols-1 md:grid-cols-2 lg:grid-cols-3", "gap-6 sm:gap-8") %}
+        
+        {% set categories = [
+            {"title": "Karya Umum & Informatika", "description": "Berisi buku-buku referensi umum yang mencakup pengetahuan luas dan dasar dari berbagai bidang.", "example": "Ensiklopedia, kamus, panduan umum, buku tips menulis, atau buku pengantar pengetahuan, komputer, teknologi informasi."},
+            {"title": "Filsafat & Psikologi", "description": "Buku yang membahas pemikiran, nilai moral, perilaku manusia, dan cara berpikir.", "example": "Buku pengembangan diri, motivasi, psikologi populer, atau etika kehidupan dan logika."},
+            {"title": "Agama", "description": "Buku yang membahas kepercayaan, nilai spiritual, dan kehidupan beragama.", "example": "Buku doa, tafsir, panduan ibadah, ahlak, atau buku pendidikan moral."},
+            {"title": "Ilmu Sosial", "description": "Buku tentang hubungan antar manusia, masyarakat, pemerintahan, dan ekonomi.", "example": "Buku sosiologi, ekonomi sederhana, hukum dasar, politik, Pendidikan, atau panduan layanan publik."},
+            {"title": "Bahasa", "description": "Buku tentang bahasa, tata bahasa, dan pembelajaran bahasa asing.", "example":"Tata bahasa Indonesia, kamus bahasa asing, atau linguistik."},
+            {"title": "Sains & Ilmu Murni", "description": "Buku yang membahas ilmu pengetahuan alam, eksperimen, dan logika ilmiah.", "example":"Matematika, fisika, kimia, biologi, astronomi, atau geologi."},
+            {"title": "Teknologi & Terapan", "description": "Buku panduan praktik yang berhubungan dengan keterampilan, teknik, dan kehidupan sehari-hari.", "example":"Buku pertanian, peternakan, kedokteran, komputer, otomotif, manajemen, atau resep masakan."},
+            {"title": "Kesenian, Olahraga, & Rekreasi", "description": "Buku tentang seni, musik, fotografi, olahraga, dan hobi.", "example":"Buku menggambar, panduan bermain musik, panduan olahraga, atau ide kerajinan tangan."},
+            {"title": "Kesusastraan", "description": "Buku fiksi dan karya tulis kreatif yang ditulis dalam bentuk naratif atau puitis.", "example":"Novel, cerpen, puisi, drama, biografi, atau karya sastra klasik."},
+            {"title": "Sejarah & Geografi", "description": "Buku tentang perjalanan waktu, tempat, dan kehidupan manusia di berbagai wilayah.", "example":"Buku sejarah Indonesia, biografi tokoh, atlas, budaya daerah, atau perjalanan wisata."},
+        ] %}
+
+        {% for category in categories %}
+            {% call card(class="bg-white shadow-md rounded-lg p-6 border-t-4 border-blue-400 hover:shadow-lg transition-all") %}
+                <h2 class="text-xl font-bold text-blue-700 mb-2">{{ category.title }}</h2>
+                <p class="text-black text-sm">{{ category.description }}</p>
+                <p class="text-gray-600 text-sm mt-1"><strong>Contoh:</strong> {{ category.example }}</p>
+            {% endcall %}
+        {% endfor %}
+
+    {% endcall %}
+
+    <!-- buatkan card untuk NB: dengan background color abu-abu muda dan terdapat spacing setelah card categories --> 
+    {% call card(class="bg-gray-100 shadow-md rounded-lg p-6 border-t-4 border-gray-700 hover:shadow-lg transition-all mt-6") %}
+        <h2 class="text-xl font-bold text-gray-700 mb-2">Catatan:</h2>
+        <p class="text-black text-m">• Buku dengan subjek pendidikan formal disarankan terbit dalam <strong>3 tahun terakhir</strong> agar materinya tetap relevan.</p>
+        <p class="text-black text-m">• Buku di luar klasifikasi ini tetap dapat dipertimbangkan melalui proses evaluasi oleh tim perpustakaan.</p>
+    {% endcall %}   
+{% endcall %}
+{% endblock %}
