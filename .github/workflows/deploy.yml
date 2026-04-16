@@ -20,15 +20,17 @@ jobs:
         script: |
           echo "Starting Deploy to EC2 t4g.medium..."
           
-          # 1. Pastikan folder sudah ada, jika tidak lakukan Git Clone
-          if [ ! -d "~/website_donasi_buku" ]; then
-            git clone https://github.com/raflyherdianto/website-donasi-buku.git ~/website_donasi_buku
-          fi
-          
-          # 2. Masuk ke direktori project
+          # 1. Buat folder jika belum ada dan masuk ke dalamnya
+          mkdir -p ~/website_donasi_buku
           cd ~/website_donasi_buku
           
-          # 3. Update kode terbaru dari branch main
+          # 2. Inisialisasi Git jika belum mensetting repository di folder ini
+          if [ ! -d ".git" ]; then
+            git init
+            git remote add origin https://github.com/raflyherdianto/website-donasi-buku.git
+          fi
+          
+          # 3. Update kode terbaru dari branch main tanpa menghapus .env lokal
           git fetch origin main
           git reset --hard origin/main
           
