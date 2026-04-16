@@ -191,9 +191,8 @@ tmp/
 logs/
 log/
 
-# Migration files (keep structure, ignore data)
-migrations/versions/*.py
-!migrations/versions/.gitkeep
+# Migration scripts must be tracked by git so tables can be created on the production server
+# (Removed the instructions to ignore migrations/versions)
 
 # Excel data files (uncomment if you want to exclude)
 # *.xlsx
