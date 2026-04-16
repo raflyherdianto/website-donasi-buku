@@ -1,5 +1,5 @@
-# Gunakan image Python versi 3.12 yang ringan sebagai dasar (Debian Bullseye)
-FROM python:3.12-slim
+# Gunakan image Python yang menggunakan Debian Bullseye secara spesifik
+FROM python:3.10-slim-bullseye
 
 # Set direktori kerja di dalam kontainer
 WORKDIR /app
